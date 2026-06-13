@@ -443,7 +443,7 @@ function fetchData(limit) {
   statusEl.textContent = '正在获取最新开奖数据...';
   statusEl.className = 'data-status';
 
-  var url = 'http://api.huiniao.top/interface/home/lotteryHistory?type=dlt&page=1&limit=' + limit;
+  var url = 'https://api.huiniao.top/interface/home/lotteryHistory?type=dlt&page=1&limit=' + limit;
 
   fetch(url)
     .then(function(res) { return res.json(); })
