@@ -1,0 +1,4394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>快乐8选号助手</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #999; }
+:root {
+  --bg-dark: #f0f2f5;
+  --bg-mid: #ffffff;
+  --bg-light: #e8eaf0;
+  --fg-primary: #1a1a2e;
+  --fg-secondary: #5a5a7a;
+  --accent: #e94560;
+  --accent-hover: #ff6b81;
+  --green: #2ed573;
+  --gold: #f0a500;
+  --card-bg: #ffffff;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --zone1: #e94560; --zone2: #ff6348; --zone3: #ffa502; --zone4: #ffc107;
+  --zone5: #2ed573; --zone6: #1e90ff; --zone7: #a55eea; --zone8: #ff6b81;
+}
+body {
+  font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+  background: var(--bg-dark);
+  color: var(--fg-primary);
+  min-height: 100vh;
+}
+.top-bar {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 4px 20px rgba(165, 10, 10, 0.3);
+}
+.top-bar h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+.top-bar .sub { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 2px; }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; min-height: 48px; }
+.tab-btn {
+  background: var(--bg-mid);
+  color: var(--fg-secondary);
+  border: 2px solid transparent;
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: grab;
+  transition: all .25s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.tab-btn:active { cursor: grabbing; }
+.tab-btn.dragging {
+  opacity: 0.5;
+  transform: scale(1.05);
+}
+.tab-btn.drag-over {
+  border-color: var(--accent);
+  background: rgba(233,69,96,0.1);
+}
+.tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(233,69,96,.4);
+  transform: translateY(-1px);
+}
+.tab-btn:hover:not(.active) { background: var(--bg-light); color: var(--fg-primary); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 选号面板 */
+.zone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.zone-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  border-left: 4px solid var(--zcolor, var(--accent));
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, transform .2s;
+}
+.zone-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.zone-card h3 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.zone-card h3 .range { color: var(--fg-secondary); font-size: 12px; }
+.zone-count-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.zone-count-ctrl button {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: var(--bg-light);
+  color: var(--fg-primary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.zone-count-ctrl button:hover { background: var(--accent); color: #fff; transform: scale(1.1); }
+.zone-count-ctrl .count-display {
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 30px;
+  text-align: center;
+  color: var(--gold);
+}
+.zone-balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ball {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--bg-dark);
+  color: var(--fg-secondary);
+  border: 2px solid transparent;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,.06);
+}
+.ball:hover { border-color: var(--accent); color: var(--fg-primary); transform: scale(1.08); }
+.ball.selected {
+  background: var(--zcolor, var(--accent));
+  color: #fff;
+  border-color: transparent;
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(233,69,96,.35);
+}
+.ball.auto-picked {
+  background: var(--green);
+  color: #1a1a2e;
+  border-color: transparent;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(46,213,115,.5);
+}
+.ball.fixed {
+  background: var(--gold);
+  color: #1a1a2e;
+  border-color: transparent;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(240,165,0,.5);
+  position: relative;
+}
+.ball.fixed::after {
+  content: '★';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 10px;
+  color: var(--gold);
+  text-shadow: 0 0 2px rgba(0,0,0,.5);
+}
+
+/* 操作栏 */
+.action-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.action-bar button {
+  border: none;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s;
+  box-shadow: var(--shadow-sm);
+}
+.action-bar button:hover { opacity: .9; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.action-bar button:active { transform: translateY(0); }
+.btn-generate {
+  background: linear-gradient(135deg, #e94560, #c62828);
+  color: #fff;
+}
+.btn-mode {
+  padding: 8px 16px;
+  border: 2px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--fg-secondary);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-mode:hover { border-color: var(--gold); color: var(--gold); }
+.btn-mode.active {
+  background: linear-gradient(135deg, var(--gold), #e6940a);
+  border-color: var(--gold);
+  color: #1a1a2e;
+}
+.btn-clear { background: var(--bg-light); color: var(--fg-primary); }
+.btn-random {
+  background: linear-gradient(135deg, #f0a500, #e6940a);
+  color: #1a1a2e;
+}
+.total-info {
+  margin-left: auto;
+  font-size: 15px;
+  color: var(--fg-secondary);
+}
+.total-info strong { color: var(--gold); font-size: 22px; }
+
+/* 结果区 */
+.result-area {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+  min-height: 80px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,.04);
+}
+.result-area h3 { margin-bottom: 14px; font-size: 15px; color: var(--fg-secondary); }
+.result-balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.result-ball {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(233,69,96,.4);
+  animation: popIn .4s cubic-bezier(.68,-.55,.27,1.55);
+}
+@keyframes popIn {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  70% { transform: scale(1.15) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* 历史记录 */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.history-item {
+  background: var(--card-bg);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s;
+}
+.history-item:hover { box-shadow: var(--shadow-md); }
+.history-item .label {
+  font-size: 12px;
+  color: var(--fg-secondary);
+  margin-bottom: 6px;
+}
+.history-item .nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.history-item .mini-ball {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-light);
+  color: var(--fg-primary);
+  box-shadow: inset 0 -1px 2px rgba(0,0,0,.08);
+}
+
+/* 已保存选号区域 */
+.history-section {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,.04);
+}
+.history-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.history-section-header h3 {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.saved-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--gold);
+  animation: fadeIn .3s ease;
+}
+.saved-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.saved-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.saved-balls-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px;
+  background: var(--bg-dark);
+  border-radius: 8px;
+  min-height: 50px;
+  margin-bottom: 10px;
+}
+.saved-balls-preview .preview-ball {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(233,69,96,.3);
+}
+.saved-card-footer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.save-name-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 12px;
+  border: 1px solid var(--bg-light);
+  border-radius: 6px;
+  font-size: 13px;
+  background: var(--bg-dark);
+  color: var(--fg-primary);
+  outline: none;
+}
+.save-name-input:focus {
+  border-color: var(--gold);
+}
+.btn-save {
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f0a500, #e6940a);
+  color: #1a1a2e;
+  transition: all .2s;
+  box-shadow: var(--shadow-sm);
+}
+.btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 已保存列表项 */
+.saved-bet-item {
+  background: var(--bg-dark);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  transition: all .2s;
+  border: 1px solid transparent;
+}
+.saved-bet-item:hover {
+  background: var(--bg-light);
+  border-color: var(--gold);
+}
+.saved-bet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.saved-bet-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.saved-bet-time {
+  font-size: 11px;
+  color: var(--fg-secondary);
+}
+.saved-bet-count {
+  font-size: 11px;
+  color: var(--fg-secondary);
+}
+.saved-bet-nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.saved-bet-ball {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+}
+.saved-bet-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.saved-bet-actions button {
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-load { background: var(--green); color: #fff; }
+.btn-load:hover { opacity: .85; }
+.btn-copy-saved { background: var(--bg-light); color: var(--fg-primary); }
+.btn-copy-saved:hover { background: var(--accent); color: #fff; }
+.btn-del { background: #ffebee; color: #c62828; }
+.btn-del:hover { background: #c62828; color: #fff; }
+
+/* 模拟选号 */
+.sim-play-bar {
+  display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
+}
+.sim-play-bar select {
+  padding: 10px 16px; border-radius: var(--radius-sm); border: 2px solid var(--accent);
+  font-size: 15px; font-weight: 700; color: var(--accent); background: var(--card-bg);
+  cursor: pointer; outline: none;
+}
+.sim-hint { font-size: 13px; color: var(--fg-secondary); }
+.sim-hint strong { color: var(--accent); }
+.sim-dan-hint { font-size: 12px; color: var(--gold); margin-left: auto; }
+.sim-grid-wrap {
+  background: var(--card-bg); border-radius: var(--radius-md); padding: 16px;
+  box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow-x: auto;
+}
+.sim-grid {
+  display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; min-width: 420px;
+}
+.sim-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sim-ball {
+  width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: all .2s; background: var(--bg-dark); color: var(--fg-primary);
+  border: 2px solid transparent; user-select: none;
+}
+.sim-ball:hover { border-color: var(--accent); transform: scale(1.08); }
+.sim-ball.selected {
+  background: var(--accent); color: #fff; border-color: transparent;
+  transform: scale(1.1); box-shadow: 0 3px 10px rgba(233,69,96,.35);
+}
+.sim-ball.dan {
+  background: var(--gold); color: #1a1a2e; border-color: transparent;
+  transform: scale(1.1); box-shadow: 0 3px 10px rgba(240,165,0,.5);
+}
+.sim-count { font-size: 10px; color: var(--fg-secondary); }
+.sim-actions {
+  display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+}
+.sim-actions button {
+  border: none; padding: 10px 22px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all .25s;
+  box-shadow: var(--shadow-sm);
+}
+.sim-actions button:hover { opacity: .9; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.sim-slip {
+  background: var(--card-bg); border-radius: var(--radius-lg); padding: 16px;
+  box-shadow: var(--shadow-md); border: 2px solid var(--gold);
+}
+.sim-slip-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.sim-slip-header h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.sim-slip-list { max-height: 320px; overflow-y: auto; margin-bottom: 12px; }
+.sim-slip-bet {
+  display: flex; align-items: center; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--bg-dark); margin-bottom: 6px; gap: 8px; flex-wrap: wrap;
+}
+.sim-slip-bet-info {
+  flex-shrink: 0; font-size: 12px; color: var(--fg-secondary); min-width: 80px;
+}
+.sim-slip-bet-info strong { color: var(--accent); }
+.sim-slip-bet-nums { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; }
+.sim-slip-bet-nums .s-ball {
+  width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 600; background: var(--accent); color: #fff;
+}
+.sim-slip-bet-nums .s-ball.dan-ball { background: var(--gold); color: #1a1a2e; }
+.sim-slip-bet-del {
+  border: none; background: transparent; color: var(--accent); font-size: 18px;
+  cursor: pointer; padding: 2px 6px; flex-shrink: 0;
+}
+.sim-slip-bet-del:hover { background: #ffebee; border-radius: 4px; }
+.sim-slip-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.sim-slip-total { font-size: 15px; color: var(--fg-secondary); }
+.sim-slip-total strong { color: var(--accent); font-size: 20px; }
+.sim-slip-empty { text-align: center; padding: 20px; color: var(--fg-secondary); font-size: 13px; }
+.sim-selected-info {
+  font-size: 13px; color: var(--fg-secondary); margin-left: auto;
+}
+.sim-selected-info strong { color: var(--accent); font-size: 16px; }
+
+@media (max-width: 600px) {
+  .sim-grid { grid-template-columns: repeat(8, 1fr); gap: 4px; min-width: 300px; }
+  .sim-ball { width: 32px; height: 32px; font-size: 12px; }
+  .sim-slip-footer { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 600px) {
+  .saved-card-footer { flex-direction: column; }
+  .save-name-input { width: 100%; }
+  .btn-save, .saved-card-footer .btn-icon { width: 100%; }
+}
+
+/* 走势图面板 */
+.trend-tables-grid {
+  margin-bottom: 12px;
+}
+.trend-main {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.trend-period-col {
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 4px 2px;
+  box-shadow: var(--shadow-sm);
+}
+.trend-zones-row {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.trend-zone-col {
+  flex: 1;
+  min-width: 52px;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 4px 2px;
+  box-shadow: var(--shadow-sm);
+}
+.trend-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+.trend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  border: 1px solid #d0d0d0;
+}
+.trend-table th {
+  background: var(--bg-light);
+  padding: 1px 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 9px;
+  white-space: nowrap;
+  border: 1px solid #d0d0d0;
+}
+.trend-table td {
+  padding: 0;
+  text-align: center;
+  border: 1px solid #d0d0d0;
+  height: 16px;
+  position: relative;
+}
+.trend-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+.trend-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.data-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.data-bar button {
+  border: none;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  box-shadow: var(--shadow-sm);
+}
+.btn-fetch {
+  background: linear-gradient(135deg, #e94560, #c62828);
+  color: #fff;
+}
+.btn-fetch:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.btn-download {
+  background: linear-gradient(135deg, #1e90ff, #0d47a1);
+  color: #fff;
+}
+.btn-download:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.period-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--card-bg);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  color: var(--fg-primary);
+}
+.period-select {
+  padding: 5px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  background: var(--bg-dark);
+  color: var(--fg-primary);
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.period-select:focus {
+  border-color: var(--accent);
+}
+.period-input {
+  width: 72px;
+  padding: 5px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+  background: var(--bg-dark);
+  color: var(--fg-primary);
+  transition: border-color .2s;
+}
+.period-input:focus {
+  border-color: var(--accent);
+}
+.period-input::placeholder {
+  color: #aaa;
+  font-size: 11px;
+}
+.btn-period-apply {
+  border: none;
+  padding: 6px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #1e90ff, #0d47a1);
+  color: #fff;
+  transition: all .2s;
+  box-shadow: var(--shadow-sm);
+}
+.btn-period-apply:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.period-hint {
+  font-size: 12px;
+  color: var(--fg-secondary);
+}
+.period-hint.error {
+  color: var(--accent);
+  font-weight: 600;
+}
+.data-status { font-size: 13px; color: var(--fg-secondary); }
+.data-status.ok { color: var(--green); font-weight: 600; }
+
+/* ========== 分布图 ========== */
+.dist-container { overflow-x: auto; max-height: 70vh; overflow-y: auto; }
+.dist-main {
+  display: flex;
+  gap: 0;
+  min-width: max-content;
+  border: 1px solid #d0d0d0;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+.dist-period-col {
+  flex-shrink: 0;
+  background: #fff;
+  padding: 0;
+}
+.dist-stat-col {
+  flex-shrink: 0;
+  background: #fff;
+  padding: 0;
+  border-right: 2px solid #2196f3;
+}
+.dist-zones-row {
+  display: flex;
+  gap: 0;
+}
+.dist-zone-col {
+  flex-shrink: 0;
+  background: #fff;
+  padding: 0;
+  border-right: 2px solid #2196f3;
+}
+.dist-zone-col:last-child {
+  border-right: none;
+}
+.dist-table {
+  border-collapse: collapse;
+  font-size: 10px;
+  border: 1px solid #d0d0d0;
+}
+.dist-table th {
+  background: #e3f2fd;
+  padding: 2px 1px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 9px;
+  white-space: nowrap;
+  min-width: 16px;
+  border: 1px solid #d0d0d0;
+  color: #333;
+}
+.dist-table td {
+  padding: 0;
+  text-align: center;
+  border: 1px solid #d0d0d0;
+  height: 18px;
+  width: 16px;
+  min-width: 16px;
+  position: relative;
+}
+.dist-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  background: #e53935;
+  box-shadow: 0 1px 3px rgba(229,57,53,.35);
+}
+.dist-miss {
+  font-size: 8px;
+  color: #1565c0;
+  font-weight: 600;
+}
+.dist-table .hit {
+  background: rgba(229,57,53,.08);
+}
+.dist-stat-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  background: #2196f3;
+  box-shadow: 0 1px 3px rgba(33,150,243,.35);
+}
+.dist-stat-num {
+  font-size: 8px;
+  color: #999;
+  font-weight: 600;
+}
+
+/* 分布图底部统计 */
+.dist-zone-col, .dist-period-col, .dist-stat-col {
+  display: flex;
+  flex-direction: column;
+}
+.zone-stat {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: 0;
+  padding: 4px 2px;
+  border-top: 1px solid #d0d0d0;
+  background: linear-gradient(to top, #e8f5e9, #f1f8e9);
+  flex-shrink: 0;
+}
+.zone-stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 55px;
+  min-width: 16px;
+  border: 1px solid #d0d0d0;
+}
+.zone-stat-count {
+  font-size: 9px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+.zone-stat-bar {
+  width: 10px;
+  min-height: 2px;
+  background: linear-gradient(to top, #43a047, #66bb6a);
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+  box-shadow: 0 -1px 4px rgba(67,160,71,.3);
+}
+.dist-footer-label {
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  background: linear-gradient(to top, #e8f5e9, #f1f8e9);
+  border-top: 1px solid #d0d0d0;
+  padding: 4px 2px;
+  flex-shrink: 0;
+}
+.dist-footer-placeholder {
+  height: 55px;
+  background: linear-gradient(to top, #e8f5e9, #f1f8e9);
+  border-top: 1px solid #d0d0d0;
+  flex-shrink: 0;
+}
+
+/* 横向滚动容器 */
+.trend-tables-grid, .dist-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+.trend-main, .dist-main {
+  min-width: max-content;
+}
+
+/* 验算面板 */
+.verify-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,.04);
+}
+.verify-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.verify-header h3 {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.verify-title-bar {
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.verify-sub {
+  color: var(--fg-secondary);
+  font-size: 13px;
+  font-weight: normal;
+}
+.verify-sub strong {
+  color: var(--accent);
+  font-size: 16px;
+}
+.verify-textarea {
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid var(--bg-light);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 14px;
+  resize: vertical;
+  background: var(--bg-dark);
+  color: var(--fg-primary);
+  line-height: 1.8;
+  outline: none;
+}
+.verify-textarea:focus {
+  border-color: var(--accent);
+}
+.verify-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.verify-toolbar-left {
+  display: flex;
+  gap: 8px;
+}
+.verify-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-icon {
+  border: none;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--bg-light);
+  color: var(--fg-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all .2s;
+}
+.btn-icon:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.period-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-light);
+  border-radius: 6px;
+  padding: 2px;
+}
+.period-tab {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--fg-secondary);
+  font-weight: 600;
+  transition: all .2s;
+}
+.period-tab.active {
+  background: var(--gold);
+  color: #1a1a2e;
+}
+.verify-select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--bg-light);
+  background: var(--bg-mid);
+  color: var(--fg-primary);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+.verify-period-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-light);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.verify-period-input input {
+  width: 44px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg-primary);
+  outline: none;
+}
+.verify-period-input span {
+  font-size: 13px;
+  color: var(--fg-secondary);
+}
+.verify-check {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--fg-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+.verify-check input {
+  cursor: pointer;
+}
+.verify-result-empty {
+  font-size: 13px;
+  color: var(--fg-secondary);
+  text-align: center;
+  padding: 30px;
+}
+.verify-result-item {
+  padding: 12px;
+  border-bottom: 1px solid var(--bg-light);
+}
+.verify-result-item:last-child {
+  border-bottom: none;
+}
+.verify-result-period {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg-primary);
+  margin-bottom: 6px;
+}
+.verify-result-detail {
+  font-size: 13px;
+  color: var(--fg-secondary);
+  line-height: 1.6;
+}
+.verify-hit-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 6px;
+}
+.verify-hit-tag.win {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.verify-hit-tag.lose {
+  background: #ffebee;
+  color: #c62828;
+}
+.verify-num-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  margin: 1px;
+}
+.verify-num-ball.miss {
+  background: var(--bg-light);
+  color: var(--fg-secondary);
+}
+
+/* 验算模式选择 */
+.verify-mode-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.verify-mode-btn {
+  border: 2px solid var(--bg-light);
+  background: var(--bg-light);
+  color: var(--fg-secondary);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.verify-mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.verify-mode-btn:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .container { padding: 12px 8px; }
+  .top-bar { padding: 12px 16px; }
+  .top-bar h1 { font-size: 18px; }
+  .top-bar .sub { font-size: 12px; }
+  .tab-btn { padding: 8px 14px; font-size: 13px; }
+  .action-bar button { padding: 8px 16px; font-size: 13px; }
+  .result-ball { width: 36px; height: 36px; font-size: 14px; }
+  .ball { width: 30px; height: 30px; font-size: 12px; }
+
+  /* 走势表格缩小 */
+  .trend-zone-col { min-width: 40px; }
+  .trend-table { font-size: 9px; }
+  .trend-table th { font-size: 8px; padding: 1px 0; }
+  .trend-ball { width: 12px; height: 12px; font-size: 7px; }
+
+  /* 分布图缩小 */
+  .dist-table { font-size: 9px; }
+  .dist-table th { min-width: 14px; width: 14px; padding: 2px 0; font-size: 8px; }
+  .dist-table td { width: 14px; min-width: 14px; height: 16px; }
+  .dist-ball, .dist-stat-ball { width: 12px; height: 12px; font-size: 7px; }
+  .dist-miss, .dist-stat-num { font-size: 7px; }
+  .zone-stat-cell { height: 45px; min-width: 14px; }
+  .zone-stat-count { font-size: 8px; }
+  .zone-stat-bar { width: 8px; }
+  .dist-footer-label, .dist-footer-placeholder { height: 45px; font-size: 9px; }
+
+  /* 数据栏 */
+  .data-bar { gap: 6px; }
+  .data-bar button { padding: 6px 12px; font-size: 12px; }
+
+  /* 验算面板 */
+  .verify-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .verify-toolbar-right {
+    width: 100%;
+  }
+}
+
+/* 手动输入弹窗 */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--bg-mid);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .3s ease;
+}
+@keyframes modalIn { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-box h3 { margin-bottom: 12px; font-size: 16px; }
+.modal-box textarea {
+  width: 100%;
+  min-height: 200px;
+  background: var(--card-bg);
+  color: var(--fg-primary);
+  border: 1px solid var(--bg-light);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  font-family: Consolas, monospace;
+  resize: vertical;
+}
+.modal-box textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.modal-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+.modal-actions button {
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* 保存区验算结果 */
+.saved-verify-item {
+  margin-bottom: 8px;
+  padding: 8px;
+  background: var(--bg-dark);
+  border-radius: 6px;
+}
+.saved-verify-hit {
+  color: var(--gold);
+  font-weight: 700;
+}
+.saved-verify-miss {
+  opacity: 0.4;
+}
+
+/* 预测区 */
+.pred-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: var(--bg-dark);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+.pred-row-label {
+  font-size: 12px;
+  color: var(--fg-secondary);
+  min-width: 60px;
+}
+.pred-row-input {
+  flex: 1;
+  min-width: 200px;
+  background: var(--card-bg);
+  color: var(--fg-primary);
+  border: 1px solid var(--bg-light);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: Consolas, monospace;
+}
+.pred-row-input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.pred-row-balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.pred-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-light);
+  color: var(--fg-secondary);
+  cursor: pointer;
+  transition: all .2s;
+}
+.pred-ball:hover { background: var(--accent); color: #fff; }
+.pred-ball.selected {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 6px rgba(30,144,255,.5);
+}
+.pred-ball.hit {
+  background: var(--gold);
+  color: #1a1a2e;
+}
+.pred-analyze-result {
+  padding: 10px;
+  background: var(--bg-dark);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.pred-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+@media (max-width: 640px) {
+  .pred-grid { grid-template-columns: repeat(8, 1fr); }
+}
+</style>
+<!-- 引入腾讯云开发 SDK -->
+<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.28.6/cloudbase.full.js"></script>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>快乐8选号助手</h1>
+    <div class="sub">80选20 · 智能区间选号 · 走势分析</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('pick')">区间选号</button>
+    <button class="tab-btn" onclick="switchTab('sim')">模拟选号</button>
+    <button class="tab-btn" onclick="switchTab('trend')">走势分析</button>
+    <button class="tab-btn" onclick="switchTab('dist')">传统8区分布图</button>
+    <button class="tab-btn" onclick="switchTab('dist4')">4区分布</button>
+    <button class="tab-btn" onclick="switchTab('dist10')">10区分布</button>
+    <button class="tab-btn" onclick="switchTab('tail')">尾号走势</button>
+    <button class="tab-btn" onclick="switchTab('verify')">模拟验算</button>
+  </div>
+
+  <!-- ========== 选号面板 ========== -->
+  <div id="pickPanel" class="tab-panel active">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button id="zoneMode8" class="btn-mode active" onclick="switchZoneMode(8)">8区选号</button>
+      <button id="zoneMode10" class="btn-mode" onclick="switchZoneMode(10)">10区选号</button>
+      <button id="zoneModeMix" class="btn-mode" onclick="switchZoneMode('mix')">混合选号</button>
+    </div>
+    <div class="zone-grid" id="zoneGrid"></div>
+
+    <div class="action-bar">
+      <button class="btn-generate" onclick="generateNumbers()">智能选号</button>
+      <button class="btn-generate" onclick="batchGenerate(5)" style="background:linear-gradient(135deg,#2ed573,#1e90ff);">批量选号5组</button>
+      <button class="btn-generate" onclick="batchGenerate(10)" style="background:linear-gradient(135deg,#a55eea,#8854d0);">批量选号10组</button>
+      <button class="btn-random" onclick="randomAll()">随机选号</button>
+      <button class="btn-clear" onclick="clearAll()">清空</button>
+      <div class="total-info">
+        已选 <strong id="totalPicked">0</strong> 个号码
+      </div>
+    </div>
+
+    <div id="pickResultArea" class="result-area" style="display:none;">
+      <div style="margin-bottom:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn-icon" onclick="copyCurrentPick()">📋 复制号码</button>
+        <button class="btn-generate" onclick="importPickToSim()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">导入到模拟选号</button>
+        <button class="btn-clear" onclick="clearPickResults()">清除结果</button>
+      </div>
+      <h3 style="display:flex;align-items:center;justify-content:space-between;">选号结果 <span style="font-size:12px;color:var(--fg-secondary);font-weight:normal;" id="pickResultCount"></span></h3>
+      <div id="pickResultGroups"></div>
+    </div>
+  </div>
+
+  <!-- ========== 模拟选号面板 ========== -->
+  <div id="simPanel" class="tab-panel">
+    <div class="sim-play-bar">
+      <select id="simPlayType" onchange="simOnTypeChange()">
+        <option value="1">选一</option>
+        <option value="2">选二</option>
+        <option value="3">选三</option>
+        <option value="4">选四</option>
+        <option value="5">选五</option>
+        <option value="6">选六</option>
+        <option value="7">选七</option>
+        <option value="8">选八</option>
+        <option value="9">选九</option>
+        <option value="10" selected>选十</option>
+        <option value="11">复式11</option>
+        <option value="12">复式12</option>
+        <option value="13">复式13</option>
+        <option value="14">复式14</option>
+        <option value="15">复式15</option>
+      </select>
+      <span class="sim-hint" id="simHint">选十至少选10个号码</span>
+      <span class="sim-selected-info">已选 <strong id="simSelectedCount">0</strong> 个号码</span>
+      <span class="sim-dan-hint">双击号码设胆</span>
+    </div>
+
+    <div class="sim-grid-wrap">
+      <div class="sim-grid" id="simGrid"></div>
+    </div>
+
+    <div class="sim-actions">
+      <button class="btn-clear" onclick="simClear()">清空</button>
+      <button class="btn-random" onclick="simRandom()" id="simRandomBtn">10机选</button>
+      <button class="btn-generate" onclick="simAddToSlip()">加入选号单</button>
+      <button class="btn-icon" onclick="saveToCloud()">☁️ 保存到云端</button>
+      <button class="btn-icon" onclick="loadFromCloud()">📥 加载云端</button>
+      <button class="btn-icon" onclick="deleteCloudData()" style="background:#ffebee;color:#c62828;">🗑️ 删除云端</button>
+    </div>
+
+    <div class="sim-slip">
+      <div class="sim-slip-header">
+        <h3><span style="display:inline-block;width:4px;height:16px;background:var(--gold);border-radius:2px;"></span> 选号单 <span id="simSlipCount" style="font-size:13px;color:var(--fg-secondary);font-weight:normal;"></span></h3>
+        <button class="btn-icon" onclick="simClearSlip()" style="font-size:12px;">清空选号单</button>
+      </div>
+      <div class="sim-slip-list" id="simSlipList">
+        <div class="sim-slip-empty">暂未添加选号</div>
+      </div>
+      <div class="sim-slip-footer">
+        <div class="sim-slip-total">
+          共 <strong id="simTotalBets">0</strong> 注，共 <strong id="simTotalCost">0</strong> 元
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-random" onclick="simAddRandomToSlip()" style="padding:8px 18px;font-size:13px;">机选一注加入选号单</button>
+          <button class="btn-generate" onclick="simSaveSlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">保存选号</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 保存区 -->
+    <div class="sim-slip" id="simSavedArea" style="margin-top:12px;display:none;">
+      <div class="sim-slip-header">
+        <h3><span style="display:inline-block;width:4px;height:16px;background:var(--green);border-radius:2px;"></span> 已保存选号 <span id="simSavedCount" style="font-size:13px;color:var(--fg-secondary);font-weight:normal;"></span></h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-icon" onclick="simVerifySaved()" style="font-size:12px;background:var(--accent);color:#fff;">验算当期</button>
+          <button class="btn-icon" onclick="simClearSaved()" style="font-size:12px;">清空</button>
+        </div>
+      </div>
+      <div class="sim-slip-list" id="simSavedList"></div>
+      <div id="simSavedResult" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- ========== 走势面板 ========== -->
+  <div id="trendPanel" class="tab-panel">
+    <div class="data-bar">
+      <button style="background:var(--bg-light);color:var(--fg-primary);" onclick="showManualInput()">手动录入数据</button>
+      <span class="data-status" id="dataStatus">未加载数据</span>
+    </div>
+
+    <div class="trend-tables-grid" id="trendTables"></div>
+  </div>
+
+  <!-- ========== 分布图面板 ========== -->
+  <div id="distPanel" class="tab-panel">
+    <div class="data-bar">
+      <button class="btn-download" onclick="downloadDataTxt()">下载TXT</button>
+      <span class="data-status" id="distStatus">未加载数据</span>
+    </div>
+    <div class="period-selector">
+      <span>最近</span>
+      <input type="number" id="distRecentN" value="30" min="1" max="200" class="period-input" onchange="distApplyPeriod()">
+      <span>期，从</span>
+      <select id="distStartMode" class="period-select" onchange="distStartModeChange()">
+        <option value="latest">当前</option>
+        <option value="custom">指定期号</option>
+      </select>
+      <input type="number" id="distStartPeriod" placeholder="起始期号" class="period-input" style="display:none;" onchange="distApplyPeriod()">
+      <span>开始</span>
+      <button class="btn-period-apply" onclick="distApplyPeriod()">查看</button>
+      <span class="period-hint" id="distPeriodHint"></span>
+    </div>
+    <div class="dist-container" id="distContainer"></div>
+  </div>
+
+  <!-- ========== 4区分布图面板 ========== -->
+  <div id="dist4Panel" class="tab-panel">
+    <div class="data-bar">
+      <span class="data-status" id="dist4Status">未加载数据</span>
+    </div>
+    <div class="dist-container" id="dist4Container"></div>
+  </div>
+
+  <!-- ========== 10区分布图面板 ========== -->
+  <div id="dist10Panel" class="tab-panel">
+    <div class="data-bar">
+      <span class="data-status" id="dist10Status">未加载数据</span>
+    </div>
+    <div class="dist-container" id="dist10Container"></div>
+  </div>
+
+  <!-- ========== 尾号走势面板 ========== -->
+  <div id="tailPanel" class="tab-panel">
+    <div class="data-bar">
+      <button class="btn-fetch" onclick="fetchData()">获取最新开奖数据</button>
+      <span class="data-status" id="tailStatus">未加载数据</span>
+    </div>
+    <div class="trend-tables-grid" id="tailTables"></div>
+  </div>
+
+  <!-- ========== 模拟验算面板 ========== -->
+  <div id="verifyPanel" class="tab-panel">
+    <div class="data-bar">
+      <span class="data-status" id="verifyStatus">未加载数据</span>
+    </div>
+
+    <!-- 奖金说明卡 -->
+    <div class="verify-card" style="background:linear-gradient(135deg,#fff8e1,#fffde7);border:1px solid var(--gold);">
+      <div class="verify-header">
+        <h3><span class="verify-title-bar" style="background:var(--gold);"></span>奖金说明</h3>
+      </div>
+      <div id="prizeInfo" style="font-size:13px;color:var(--fg-secondary);line-height:1.8;">
+        选择玩法后显示对应奖金规则
+      </div>
+    </div>
+
+    <div class="verify-card">
+      <div class="verify-header">
+        <h3><span class="verify-title-bar"></span>验算号码 <span class="verify-sub">共计 <strong id="verifyCount">0</strong> 注</span></h3>
+        <span style="font-size:13px;color:var(--gold);cursor:pointer;" onclick="showVerifyHelp()">帮助</span>
+      </div>
+      <div class="verify-mode-tabs">
+        <button class="verify-mode-btn active" onclick="setVerifyMode('single',this)">单式</button>
+        <button class="verify-mode-btn" onclick="setVerifyMode('multiple',this)">复式</button>
+        <button class="verify-mode-btn" onclick="setVerifyMode('dantuo',this)">胆拖</button>
+      </div>
+      <textarea id="verifyInput" class="verify-textarea" placeholder="每行输入一注号码，号码间用空格或逗号分隔&#10;例如：01 05 12 23 34 41 55 62 71 08&#10;可输入多注，每注占一行"></textarea>
+      <div class="verify-toolbar">
+        <div class="verify-toolbar-left">
+          <button class="btn-icon" onclick="clearVerify()"><span class="icon">🗑</span> 清除</button>
+          <button class="btn-icon" onclick="copyVerify()"><span class="icon">📋</span> 复制</button>
+        </div>
+        <div class="verify-toolbar-right">
+          <div class="period-tabs">
+            <button class="period-tab active" onclick="setVerifyPeriod(1,this)">1</button>
+            <button class="period-tab" onclick="setVerifyPeriod(10,this)">10</button>
+            <button class="period-tab" onclick="setVerifyPeriod(30,this)">30</button>
+          </div>
+          <select id="verifyPlayType" class="verify-select" onchange="onPlayTypeChange();updatePrizeInfo();">
+            <option value="1">选一</option>
+            <option value="2">选二</option>
+            <option value="3">选三</option>
+            <option value="4">选四</option>
+            <option value="5">选五</option>
+            <option value="6">选六</option>
+            <option value="7">选七</option>
+            <option value="8">选八</option>
+            <option value="9">选九</option>
+            <option value="10" selected>选十</option>
+            <option value="11">复式11</option>
+            <option value="12">复式12</option>
+            <option value="13">复式13</option>
+            <option value="14">复式14</option>
+            <option value="15">复式15</option>
+          </select>
+          <button class="btn-random" onclick="randomVerify()" style="padding:8px 14px;font-size:13px;"><span>⚡</span> 机选10注</button>
+          <div class="verify-period-input">
+            <input type="number" id="verifyPeriodNum" value="1" min="1" max="100" onchange="syncPeriodFromInput()">
+            <span>期</span>
+          </div>
+          <label class="verify-check">
+            <input type="checkbox" id="verifyFirstOnly">
+            <span>只验算第1注</span>
+          </label>
+          <button class="btn-generate" onclick="runVerify()" style="padding:10px 22px;"><span>验算</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="verify-card">
+      <div class="verify-header">
+        <h3><span class="verify-title-bar"></span>验算结果</h3>
+        <span style="font-size:13px;color:var(--gold);cursor:pointer;" onclick="showVerifyHelp()">帮助</span>
+      </div>
+      <div id="verifyResult" class="verify-result-empty">请输入号码并点击"验算"按钮查看结果</div>
+    </div>
+  </div>
+</div>
+
+<!-- 手动录入弹窗 -->
+<div class="modal-overlay" id="manualModal">
+  <div class="modal-box">
+    <h3>手动录入开奖数据</h3>
+    <p style="font-size:13px;color:var(--fg-secondary);margin-bottom:10px;">
+      每行一期，格式：期号,号码1 号码2 ... 号码20<br>
+      例如：2025090,01 05 12 23 34 41 55 62 71 08 19 27 38 44 58 67 74 03 16 49<br>
+      提示：也可直接从 <a href="https://www.917500.cn/kl8tgj/fenbu/jiben8.html" target="_blank" style="color:var(--accent);">917500.cn</a> 复制开奖数据粘贴到此处
+    </p>
+    <textarea id="manualInput" placeholder="粘贴开奖数据..."></textarea>
+    <div class="modal-actions">
+      <button style="background:var(--bg-light);color:var(--fg-primary);" onclick="closeManualModal()">取消</button>
+      <button style="background:var(--accent);color:#fff;" onclick="parseManualInput()">导入</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== 常量 ====================
+const ZONES = [
+  { id: 1, label: '第一区', range: [1, 10],  color: '#e94560' },
+  { id: 2, label: '第二区', range: [11, 20], color: '#ff6348' },
+  { id: 3, label: '第三区', range: [21, 30], color: '#ffa502' },
+  { id: 4, label: '第四区', range: [31, 40], color: '#ffc107' },
+  { id: 5, label: '第五区', range: [41, 50], color: '#2ed573' },
+  { id: 6, label: '第六区', range: [51, 60], color: '#1e90ff' },
+  { id: 7, label: '第七区', range: [61, 70], color: '#a55eea' },
+  { id: 8, label: '第八区', range: [71, 80], color: '#ff6b81' },
+];
+
+// 混合选号模式的8区间配置
+const ZONES_MIX = [
+  { id: 1, label: '区间一', range: [1, 10],  color: '#e53935' },
+  { id: 2, label: '区间二', range: [11, 20], color: '#f4511e' },
+  { id: 3, label: '区间三', range: [21, 30], color: '#fb8c00' },
+  { id: 4, label: '区间四', range: [31, 40], color: '#ffc107' },
+  { id: 5, label: '区间五', range: [41, 50], color: '#8bc34a' },
+  { id: 6, label: '区间六', range: [51, 60], color: '#00acc1' },
+  { id: 7, label: '区间七', range: [61, 70], color: '#1e88e5' },
+  { id: 8, label: '区间八', range: [71, 80], color: '#3949ab' },
+];
+
+// ==================== 状态 ====================
+let zoneMode = 8; // 8区、10区或'mix'混合模式
+let zoneCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // 每区选几个
+let manualSelected = new Set();              // 手动点击选中的号码
+let fixedNumbers = new Set();                // 双击固定的号码
+let drawData = [];                           // [{period, numbers}]
+let pickedGroups = [];                        // 多组选号结果，每组为一个排序数组
+
+// ==================== 初始化选号面板 ====================
+function buildZoneGrid() {
+  const grid = document.getElementById('zoneGrid');
+  grid.innerHTML = '';
+  
+  const zones = zoneMode === 10 ? ZONES10 : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  
+  zones.forEach((z, idx) => {
+    const card = document.createElement('div');
+    card.className = 'zone-card';
+    card.style.setProperty('--zcolor', z.color);
+    card.style.borderLeftColor = z.color;
+
+    let ballsHtml = '';
+    for (let n = z.range[0]; n <= z.range[1]; n++) {
+      const sn = String(n).padStart(2, '0');
+      ballsHtml += `<div class="ball" data-num="${n}" id="ball-${n}" onclick="toggleBall(${n})" ondblclick="toggleFixed(${n})" style="--zcolor:${z.color}">${sn}</div>`;
+    }
+
+    card.innerHTML = `
+      <h3>
+        <span style="color:${z.color}">${z.label}</span>
+        <span class="range">${String(z.range[0]).padStart(2,'0')}-${String(z.range[1]).padStart(2,'0')}</span>
+      </h3>
+      <div class="zone-count-ctrl">
+        <button onclick="changeCount(${idx},-1)">−</button>
+        <span class="count-display" id="count-${idx}">${zoneCounts[idx] || 0}</span>
+        <button onclick="changeCount(${idx},1)">+</button>
+        <span style="font-size:12px;color:var(--fg-secondary);margin-left:4px;">个</span>
+      </div>
+      <div class="zone-balls">${ballsHtml}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function switchZoneMode(mode) {
+  zoneMode = mode;
+  
+  document.getElementById('zoneMode8').classList.toggle('active', mode === 8);
+  document.getElementById('zoneMode10').classList.toggle('active', mode === 10);
+  document.getElementById('zoneModeMix').classList.toggle('active', mode === 'mix');
+  
+  const zones = mode === 10 ? ZONES10 : mode === 'mix' ? ZONES_MIX : ZONES;
+  zoneCounts = new Array(zones.length).fill(0);
+  
+  buildZoneGrid();
+  updateTotalPicked();
+}
+
+function changeCount(idx, delta) {
+  zoneCounts[idx] = Math.max(0, Math.min(10, zoneCounts[idx] + delta));
+  document.getElementById(`count-${idx}`).textContent = zoneCounts[idx];
+  updateTotalPicked();
+}
+
+function updateTotalPicked() {
+  const fromCounts = zoneCounts.reduce((s, c) => s + c, 0);
+  document.getElementById('totalPicked').textContent = fromCounts;
+}
+
+// 手动点击号码球
+function toggleBall(n) {
+  if (manualSelected.has(n)) {
+    manualSelected.delete(n);
+    document.getElementById(`ball-${n}`).classList.remove('selected');
+  } else {
+    manualSelected.add(n);
+    document.getElementById(`ball-${n}`).classList.add('selected');
+  }
+  updateTotalPicked();
+}
+
+function toggleFixed(n) {
+  const ball = document.getElementById(`ball-${n}`);
+  if (fixedNumbers.has(n)) {
+    fixedNumbers.delete(n);
+    ball.classList.remove('fixed');
+    showToast(`已取消固定号码 ${String(n).padStart(2, '0')}`);
+  } else {
+    fixedNumbers.add(n);
+    ball.classList.add('fixed');
+    showToast(`已固定号码 ${String(n).padStart(2, '0')}`);
+  }
+}
+
+// ==================== 选号逻辑 ====================
+function generateNumbers() {
+  const result = new Set();
+  
+  const zones = zoneMode === 10 ? ZONES10 : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+
+  // 按区选号：固定号码优先，然后自选，不足随机补
+  zones.forEach((z, idx) => {
+    const count = zoneCounts[idx] || 0;
+    if (count <= 0) return;
+
+    // 该区的固定号码
+    const fixedInZone = [];
+    for (let n = z.range[0]; n <= z.range[1]; n++) {
+      if (fixedNumbers.has(n)) fixedInZone.push(n);
+    }
+
+    // 该区自选的号码（排除固定号码）
+    const manualInZone = [];
+    for (let n = z.range[0]; n <= z.range[1]; n++) {
+      if (manualSelected.has(n) && !fixedNumbers.has(n)) manualInZone.push(n);
+    }
+
+    // 先添加固定号码
+    fixedInZone.forEach(n => result.add(n));
+    const need = count - fixedInZone.length;
+
+    if (need <= 0) {
+      // 固定号码已经满足或超过区间要求
+      return;
+    }
+
+    if (manualInZone.length >= need) {
+      // 自选数量 >= 剩余需求，从自选里随机挑need个
+      shuffle(manualInZone);
+      for (let i = 0; i < need; i++) result.add(manualInZone[i]);
+    } else {
+      // 自选数量 < 剩余需求，先添加自选，再从非固定、非自选中随机补
+      manualInZone.forEach(n => result.add(n));
+      const remaining = need - manualInZone.length;
+      const pool = [];
+      for (let n = z.range[0]; n <= z.range[1]; n++) {
+        if (!fixedNumbers.has(n) && !manualSelected.has(n)) pool.push(n);
+      }
+      shuffle(pool);
+      for (let i = 0; i < remaining && i < pool.length; i++) result.add(pool[i]);
+    }
+  });
+
+  // 标记选中状态
+  highlightBalls(result, manualSelected);
+
+  // 渲染结果
+  renderResult([...result].sort((a, b) => a - b));
+}
+
+function batchGenerate(count) {
+  const totalNeeded = zoneCounts.reduce((sum, c) => sum + c, 0);
+  if (totalNeeded === 0) {
+    showToast('请先设定每区选号数量');
+    return;
+  }
+  
+  const zones = zoneMode === 10 ? ZONES10 : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  
+  for (let i = 0; i < count; i++) {
+    const result = new Set();
+    
+    zones.forEach((z, idx) => {
+      const zoneCount = zoneCounts[idx] || 0;
+      if (zoneCount <= 0) return;
+      
+      // 该区的固定号码
+      const fixedInZone = [];
+      for (let n = z.range[0]; n <= z.range[1]; n++) {
+        if (fixedNumbers.has(n)) fixedInZone.push(n);
+      }
+      
+      // 先添加固定号码
+      fixedInZone.forEach(n => result.add(n));
+      const need = zoneCount - fixedInZone.length;
+      
+      if (need <= 0) return;
+      
+      // 从非固定号码中随机选择
+      const pool = [];
+      for (let n = z.range[0]; n <= z.range[1]; n++) {
+        if (!fixedNumbers.has(n)) pool.push(n);
+      }
+      shuffle(pool);
+      for (let j = 0; j < need && j < pool.length; j++) {
+        result.add(pool[j]);
+      }
+    });
+    
+    pickedGroups.push([...result].sort((a, b) => a - b));
+  }
+  
+  renderPickResults();
+  showToast(`已生成${count}组选号`);
+}
+
+function randomAll() {
+  // 每区随机1-3个，共约20个
+  zoneCounts = zoneCounts.map(() => Math.floor(Math.random() * 3) + 1);
+  zoneCounts.forEach((c, i) => {
+    document.getElementById(`count-${i}`).textContent = c;
+  });
+  manualSelected.clear();
+  generateNumbers();
+}
+
+function clearAll() {
+  zoneCounts = [0, 0, 0, 0, 0, 0, 0, 0];
+  zoneCounts.forEach((_, i) => {
+    document.getElementById(`count-${i}`).textContent = 0;
+  });
+  manualSelected.clear();
+  fixedNumbers.clear();
+  document.querySelectorAll('.ball').forEach(b => {
+    b.classList.remove('selected', 'auto-picked', 'fixed');
+  });
+  document.getElementById('pickResultArea').style.display = 'none';
+  updateTotalPicked();
+}
+
+function highlightBalls(resultSet, manualSet) {
+  document.querySelectorAll('.ball').forEach(b => {
+    b.classList.remove('selected', 'auto-picked');
+    const n = parseInt(b.dataset.num);
+    if (manualSet.has(n)) {
+      b.classList.add('selected');
+    } else if (resultSet.has(n)) {
+      b.classList.add('auto-picked');
+    }
+  });
+}
+
+function renderResult(sorted) {
+  if (sorted.length === 0) {
+    showToast('未选择任何号码，请设定每区选号数量或手动点击号码球');
+    return;
+  }
+  pickedGroups.push(sorted);
+  renderPickResults();
+}
+
+function renderPickResults() {
+  const area = document.getElementById('pickResultArea');
+  const groupsEl = document.getElementById('pickResultGroups');
+  const countEl = document.getElementById('pickResultCount');
+  if (pickedGroups.length === 0) {
+    area.style.display = 'none';
+    return;
+  }
+  area.style.display = '';
+  const totalNums = pickedGroups.reduce((s, g) => s + g.length, 0);
+  countEl.textContent = `(${pickedGroups.length}组 ${totalNums}个号码)`;
+  groupsEl.innerHTML = pickedGroups.map((group, idx) => `
+    <div style="margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;">
+      <div style="font-size:11px;color:var(--fg-secondary);margin-bottom:4px;">第${idx + 1}组 (${group.length}个)</div>
+      <div class="result-balls">${group.map(n =>
+        `<div class="result-ball">${String(n).padStart(2, '0')}</div>`
+      ).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function clearPickResults() {
+  pickedGroups = [];
+  document.getElementById('pickResultArea').style.display = 'none';
+  showToast('已清除选号结果');
+}
+
+function copyCurrentPick() {
+  if (pickedGroups.length === 0) {
+    showToast('当前没有选号');
+    return;
+  }
+  const text = pickedGroups.map(group =>
+    group.map(n => String(n).padStart(2, '0')).join(' ')
+  ).join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('已复制号码')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制号码');
+  });
+}
+
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+// ==================== 走势分析 ====================
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.78);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:999;transition:opacity .3s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2000);
+}
+
+// ==================== 走势分析 ====================
+function getZoneCounts(numbers) {
+  const counts = new Array(8).fill(0);
+  numbers.forEach(n => {
+    const zi = Math.floor((n - 1) / 10);
+    if (zi >= 0 && zi < 8) counts[zi]++;
+  });
+  return counts;
+}
+
+function buildTrendTables() {
+  const container = document.getElementById('trendTables');
+  container.innerHTML = '';
+
+  const dataSlice = drawData.slice(0, 30).reverse();
+  const maxCount = 6;
+
+  const main = document.createElement('div');
+  main.className = 'trend-main';
+
+  // 左侧：期号列
+  const periodDiv = document.createElement('div');
+  periodDiv.className = 'trend-period-col';
+  periodDiv.innerHTML = `
+    <table class="trend-table">
+      <thead>
+        <tr><th colspan="2" style="font-size:9px;">期号</th></tr>
+        <tr><th style="width:22px;">序</th><th style="width:46px;">期号</th></tr>
+      </thead>
+      <tbody>
+        ${dataSlice.map((d, i) => `
+          <tr>
+            <td style="color:var(--fg-secondary);font-size:9px;">${i+1}</td>
+            <td style="font-family:Consolas,monospace;font-size:9px;color:var(--fg-secondary)">${d.period.slice(-4)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  main.appendChild(periodDiv);
+
+  // 右侧：8个区间横排
+  const zonesDiv = document.createElement('div');
+  zonesDiv.className = 'trend-zones-row';
+
+  ZONES.forEach((zone, zidx) => {
+    const zoneDiv = document.createElement('div');
+    zoneDiv.className = 'trend-zone-col';
+    zoneDiv.innerHTML = `
+      <div class="trend-wrapper" id="trend-wrapper-${zidx}">
+        <table class="trend-table" id="trend-table-${zidx}">
+          <thead>
+            <tr>
+              <th colspan="${maxCount+1}" style="color:${zone.color};font-size:10px;padding:1px 0;">
+                ${zone.label} (${String(zone.range[0]).padStart(2,'0')}-${String(zone.range[1]).padStart(2,'0')})
+              </th>
+            </tr>
+            <tr>${Array.from({length: maxCount+1}, (_, i) => `<th>${i}</th>`).join('')}</tr>
+          </thead>
+          <tbody>
+            ${dataSlice.map((d, rowIdx) => {
+              const count = d.zoneCounts[zidx];
+              return `<tr>
+                ${Array.from({length: maxCount+1}, (_, colIdx) => {
+                  if (colIdx === count) {
+                    return `<td class="trend-hit" data-row="${rowIdx}" data-col="${colIdx}">
+                      <span class="trend-ball" style="background:${zone.color}">${count}</span>
+                    </td>`;
+                  }
+                  return `<td></td>`;
+                }).join('')}
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <svg class="trend-svg" id="trend-svg-${zidx}"></svg>
+      </div>
+    `;
+    zonesDiv.appendChild(zoneDiv);
+  });
+
+  main.appendChild(zonesDiv);
+  container.appendChild(main);
+
+  ZONES.forEach((zone, zidx) => {
+    requestAnimationFrame(() => drawTrendLines(zidx, zone.color));
+  });
+}
+
+// ==================== 分布图 ====================
+let distPeriodConfig = { recentN: 30, startMode: 'latest', startPeriod: null };
+
+function distStartModeChange() {
+  const mode = document.getElementById('distStartMode').value;
+  const customInput = document.getElementById('distStartPeriod');
+  customInput.style.display = mode === 'custom' ? '' : 'none';
+  distPeriodConfig.startMode = mode;
+}
+
+function getDistDataSlice() {
+  if (drawData.length === 0) return [];
+  const n = Math.min(distPeriodConfig.recentN || 30, drawData.length);
+  if (distPeriodConfig.startMode === 'custom' && distPeriodConfig.startPeriod) {
+    const startIdx = drawData.findIndex(d => parseInt(d.period) <= distPeriodConfig.startPeriod);
+    if (startIdx === -1) return drawData.slice(0, n).reverse();
+    const endIdx = Math.min(startIdx + n, drawData.length);
+    return drawData.slice(startIdx, endIdx).reverse();
+  }
+  return drawData.slice(0, n).reverse();
+}
+
+async function distApplyPeriod() {
+  const hintEl = document.getElementById('distPeriodHint');
+  if (!hintEl) return;
+  hintEl.textContent = '';
+  hintEl.className = 'period-hint';
+
+  const n = parseInt(document.getElementById('distRecentN').value) || 30;
+  if (n < 1 || n > 200) {
+    hintEl.textContent = '期数请填1-200';
+    hintEl.className = 'period-hint error';
+    return;
+  }
+  distPeriodConfig.recentN = n;
+
+  const startMode = document.getElementById('distStartMode').value;
+  distPeriodConfig.startMode = startMode;
+
+  if (startMode === 'custom') {
+    const sp = parseInt(document.getElementById('distStartPeriod').value);
+    if (!sp) {
+      hintEl.textContent = '请输入起始期号';
+      hintEl.className = 'period-hint error';
+      return;
+    }
+    distPeriodConfig.startPeriod = sp;
+  } else {
+    distPeriodConfig.startPeriod = null;
+  }
+
+  hintEl.textContent = '正在获取数据...';
+  await fetchData(n);
+  const slice = getDistDataSlice();
+  hintEl.textContent = `已显示 ${slice.length} 期数据`;
+}
+
+function buildDistribution() {
+  const container = document.getElementById('distContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const dataSlice = getDistDataSlice();
+
+  // 计算每个号码每期的遗漏值
+  const missings = {};
+  for (let n = 1; n <= 80; n++) {
+    missings[n] = [];
+    for (let i = 0; i < dataSlice.length; i++) {
+      if (dataSlice[i].numbers.includes(n)) {
+        missings[n][i] = 0;
+      } else {
+        let found = false;
+        for (let j = i + 1; j < dataSlice.length; j++) {
+          if (dataSlice[j].numbers.includes(n)) {
+            missings[n][i] = j - i;
+            found = true;
+            break;
+          }
+        }
+        missings[n][i] = found ? missings[n][i] : dataSlice.length - i;
+      }
+    }
+  }
+
+  // 计算每个号码出现次数
+  const numberCounts = {};
+  for (let n = 1; n <= 80; n++) {
+    numberCounts[n] = dataSlice.filter(d => d.numbers.includes(n)).length;
+  }
+
+  const main = document.createElement('div');
+  main.className = 'dist-main';
+
+  // 左侧：期号列
+  const periodDiv = document.createElement('div');
+  periodDiv.className = 'dist-period-col';
+  periodDiv.innerHTML = `
+    <table class="dist-table">
+      <thead>
+        <tr><th colspan="2">期号</th></tr>
+        <tr><th style="width:16px;">序</th><th style="width:42px;">期号</th></tr>
+      </thead>
+      <tbody>
+        ${dataSlice.map((d, i) => `
+          <tr>
+            <td style="color:#999;font-size:8px;">${i+1}</td>
+            <td style="font-family:Consolas,monospace;font-size:8px;color:#333">${d.period.slice(-4)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div class="dist-footer-label">出现次数</div>
+    <div style="padding:8px 4px;display:flex;flex-direction:column;gap:6px;">
+      <button class="btn-icon" onclick="distAddPredRow()" style="font-size:11px;padding:6px 8px;width:100%;">+ 添加预测行</button>
+      <button class="btn-icon" onclick="distClearPred()" style="font-size:11px;padding:6px 8px;width:100%;">清空预测</button>
+    </div>
+  `;
+  main.appendChild(periodDiv);
+
+  // 分区统计列
+  const statDiv = document.createElement('div');
+  statDiv.className = 'dist-stat-col';
+  let statTbody = '';
+  dataSlice.forEach((d) => {
+    let rowHtml = '';
+    d.zoneCounts.forEach((c) => {
+      if (c >= 3) {
+        rowHtml += `<td><span class="dist-stat-ball">${c}</span></td>`;
+      } else {
+        rowHtml += `<td><span class="dist-stat-num">${c}</span></td>`;
+      }
+    });
+    statTbody += `<tr>${rowHtml}</tr>`;
+  });
+  statDiv.innerHTML = `
+    <table class="dist-table">
+      <thead>
+        <tr><th colspan="8" style="color:#e53935;font-size:10px;">分区统计</th></tr>
+        <tr>${[1,2,3,4,5,6,7,8].map(i => `<th>${i}</th>`).join('')}</tr>
+      </thead>
+      <tbody>${statTbody}</tbody>
+    </table>
+    <div class="dist-footer-placeholder"></div>
+  `;
+  main.appendChild(statDiv);
+
+  // 右侧：8个区间横排
+  const zonesDiv = document.createElement('div');
+  zonesDiv.className = 'dist-zones-row';
+
+  ZONES.forEach((zone) => {
+    const zoneDiv = document.createElement('div');
+    zoneDiv.className = 'dist-zone-col';
+
+    const ballCount = zone.range[1] - zone.range[0] + 1;
+    const nums = [];
+    for (let n = zone.range[0]; n <= zone.range[1]; n++) nums.push(n);
+
+    let tbodyHtml = '';
+    dataSlice.forEach((d, rowIdx) => {
+      let rowHtml = '';
+      nums.forEach((n) => {
+        if (d.numbers.includes(n)) {
+          rowHtml += `<td class="hit"><span class="dist-ball">${String(n).padStart(2,'0')}</span></td>`;
+        } else {
+          const miss = missings[n][rowIdx];
+          rowHtml += `<td><span class="dist-miss">${miss}</span></td>`;
+        }
+      });
+      tbodyHtml += `<tr>${rowHtml}</tr>`;
+    });
+
+    // 添加预测行
+    distPredRows.forEach((predRow, predIdx) => {
+      let predRowHtml = '';
+      nums.forEach((n) => {
+        const isPred = predRow.numbers.has(n);
+        if (isPred) {
+          predRowHtml += `<td class="hit" style="background:rgba(229,57,53,0.15);cursor:pointer;" onclick="distTogglePred(${n}, '${predRow.id}')"><span class="dist-ball">${String(n).padStart(2,'0')}</span></td>`;
+        } else {
+          predRowHtml += `<td style="background:#f5f5f5;cursor:pointer;" onclick="distTogglePred(${n}, '${predRow.id}')"><span style="font-size:8px;color:#999;">-</span></td>`;
+        }
+      });
+      tbodyHtml += `<tr>${predRowHtml}</tr>`;
+    });
+
+    const zoneMaxCount = Math.max(...nums.map(n => numberCounts[n]));
+    const statHtml = nums.map(n => {
+      const count = numberCounts[n];
+      const barHeight = zoneMaxCount > 0 ? Math.max(2, Math.round((count / zoneMaxCount) * 35)) : 0;
+      return `
+        <div class="zone-stat-cell">
+          <div class="zone-stat-count">${count}</div>
+          <div class="zone-stat-bar" style="height:${barHeight}px;"></div>
+        </div>
+      `;
+    }).join('');
+
+    zoneDiv.innerHTML = `
+      <table class="dist-table">
+        <thead>
+          <tr><th colspan="${ballCount}" style="color:${zone.color};font-size:10px;">${String(zone.range[0]).padStart(2,'0')}-${String(zone.range[1]).padStart(2,'0')}区分布</th></tr>
+          <tr>${nums.map(n => `<th>${String(n).padStart(2,'0')}</th>`).join('')}</tr>
+        </thead>
+        <tbody>${tbodyHtml}</tbody>
+      </table>
+      ${distPredRows.map((predRow, predIdx) => `
+        <div style="padding:4px 2px;text-align:center;font-size:9px;color:var(--green);font-weight:600;background:#e8f5e9;border-top:1px solid #d0d0d0;display:flex;align-items:center;justify-content:space-between;">
+          <span>预测行${predIdx + 1}</span>
+          <button onclick="distRemovePredRow('${predRow.id}')" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:11px;padding:2px 6px;">删除</button>
+        </div>
+      `).join('')}
+      <div class="zone-stat" style="--cols:${ballCount};">${statHtml}</div>
+    `;
+    zonesDiv.appendChild(zoneDiv);
+  });
+
+  main.appendChild(zonesDiv);
+  container.appendChild(main);
+}
+
+// ==================== 4区分布图 ====================
+const ZONES4 = [
+  { id: 1, label: '第一区', range: [1, 20],  color: '#e53935' },
+  { id: 2, label: '第二区', range: [21, 40], color: '#1e88e5' },
+  { id: 3, label: '第三区', range: [41, 60], color: '#43a047' },
+  { id: 4, label: '第四区', range: [61, 80], color: '#8e24aa' },
+];
+
+const ZONES10 = [
+  { id: 1, label: '一区', range: [1, 8],   color: '#e53935' },
+  { id: 2, label: '二区', range: [9, 16],  color: '#f4511e' },
+  { id: 3, label: '三区', range: [17, 24], color: '#fb8c00' },
+  { id: 4, label: '四区', range: [25, 32], color: '#ffc107' },
+  { id: 5, label: '五区', range: [33, 40], color: '#8bc34a' },
+  { id: 6, label: '六区', range: [41, 48], color: '#43a047' },
+  { id: 7, label: '七区', range: [49, 56], color: '#00acc1' },
+  { id: 8, label: '八区', range: [57, 64], color: '#1e88e5' },
+  { id: 9, label: '九区', range: [65, 72], color: '#3949ab' },
+  { id: 10, label: '十区', range: [73, 80], color: '#8e24aa' },
+];
+
+function getZone4Counts(numbers) {
+  return ZONES4.map(z => numbers.filter(n => n >= z.range[0] && n <= z.range[1]).length);
+}
+
+function getZone10Counts(numbers) {
+  return ZONES10.map(z => numbers.filter(n => n >= z.range[0] && n <= z.range[1]).length);
+}
+
+function buildDistribution4() {
+  const container = document.getElementById('dist4Container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const dataSlice = drawData.slice(0, 30).reverse();
+
+  const missings = {};
+  for (let n = 1; n <= 80; n++) {
+    missings[n] = [];
+    for (let i = 0; i < dataSlice.length; i++) {
+      if (dataSlice[i].numbers.includes(n)) {
+        missings[n][i] = 0;
+      } else {
+        let found = false;
+        for (let j = i + 1; j < dataSlice.length; j++) {
+          if (dataSlice[j].numbers.includes(n)) {
+            missings[n][i] = j - i;
+            found = true;
+            break;
+          }
+        }
+        missings[n][i] = found ? missings[n][i] : dataSlice.length - i;
+      }
+    }
+  }
+
+  // 计算每个号码出现次数
+  const numberCounts = {};
+  for (let n = 1; n <= 80; n++) {
+    numberCounts[n] = dataSlice.filter(d => d.numbers.includes(n)).length;
+  }
+
+  const main = document.createElement('div');
+  main.className = 'dist-main';
+
+  // 左侧：期号列
+  const periodDiv = document.createElement('div');
+  periodDiv.className = 'dist-period-col';
+  periodDiv.innerHTML = `
+    <table class="dist-table">
+      <thead>
+        <tr><th colspan="2">期号</th></tr>
+        <tr><th style="width:16px;">序</th><th style="width:42px;">期号</th></tr>
+      </thead>
+      <tbody>
+        ${dataSlice.map((d, i) => `
+          <tr>
+            <td style="color:#999;font-size:8px;">${i+1}</td>
+            <td style="font-family:Consolas,monospace;font-size:8px;color:#333">${d.period.slice(-4)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div class="dist-footer-label">出现次数</div>
+  `;
+  main.appendChild(periodDiv);
+
+  // 分区统计列（4区）
+  const statDiv = document.createElement('div');
+  statDiv.className = 'dist-stat-col';
+  let statTbody = '';
+  dataSlice.forEach((d) => {
+    const z4c = getZone4Counts(d.numbers);
+    let rowHtml = '';
+    z4c.forEach((c) => {
+      if (c >= 5) {
+        rowHtml += `<td><span class="dist-stat-ball">${c}</span></td>`;
+      } else {
+        rowHtml += `<td><span class="dist-stat-num">${c}</span></td>`;
+      }
+    });
+    statTbody += `<tr>${rowHtml}</tr>`;
+  });
+  statDiv.innerHTML = `
+    <table class="dist-table">
+      <thead>
+        <tr><th colspan="4" style="color:#e53935;font-size:10px;">分区统计</th></tr>
+        <tr>${[1,2,3,4].map(i => `<th>${i}</th>`).join('')}</tr>
+      </thead>
+      <tbody>${statTbody}</tbody>
+    </table>
+    <div class="dist-footer-placeholder"></div>
+  `;
+  main.appendChild(statDiv);
+
+  // 右侧：4个区间横排
+  const zonesDiv = document.createElement('div');
+  zonesDiv.className = 'dist-zones-row';
+
+  ZONES4.forEach((zone) => {
+    const zoneDiv = document.createElement('div');
+    zoneDiv.className = 'dist-zone-col';
+
+    const nums = [];
+    for (let n = zone.range[0]; n <= zone.range[1]; n++) nums.push(n);
+
+    let tbodyHtml = '';
+    dataSlice.forEach((d, rowIdx) => {
+      let rowHtml = '';
+      nums.forEach((n) => {
+        if (d.numbers.includes(n)) {
+          rowHtml += `<td class="hit"><span class="dist-ball">${String(n).padStart(2,'0')}</span></td>`;
+        } else {
+          const miss = missings[n][rowIdx];
+          rowHtml += `<td><span class="dist-miss">${miss}</span></td>`;
+        }
+      });
+      tbodyHtml += `<tr>${rowHtml}</tr>`;
+    });
+
+    const zoneMaxCount = Math.max(...nums.map(n => numberCounts[n]));
+    const statHtml = nums.map(n => {
+      const count = numberCounts[n];
+      const barHeight = zoneMaxCount > 0 ? Math.max(2, Math.round((count / zoneMaxCount) * 35)) : 0;
+      return `
+        <div class="zone-stat-cell">
+          <div class="zone-stat-count">${count}</div>
+          <div class="zone-stat-bar" style="height:${barHeight}px;"></div>
+        </div>
+      `;
+    }).join('');
+
+    zoneDiv.innerHTML = `
+      <table class="dist-table">
+        <thead>
+          <tr><th colspan="20" style="color:${zone.color};font-size:10px;">${zone.label} (${String(zone.range[0]).padStart(2,'0')}-${String(zone.range[1]).padStart(2,'0')})</th></tr>
+          <tr>${nums.map(n => `<th>${String(n).padStart(2,'0')}</th>`).join('')}</tr>
+        </thead>
+        <tbody>${tbodyHtml}</tbody>
+      </table>
+      <div class="zone-stat" style="--cols:${nums.length};">${statHtml}</div>
+    `;
+    zonesDiv.appendChild(zoneDiv);
+  });
+
+  main.appendChild(zonesDiv);
+  container.appendChild(main);
+}
+
+function buildDistribution10() {
+  const container = document.getElementById('dist10Container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const dataSlice = drawData.slice(0, 30).reverse();
+
+  const missings = {};
+  for (let n = 1; n <= 80; n++) {
+    missings[n] = [];
+    for (let i = 0; i < dataSlice.length; i++) {
+      if (dataSlice[i].numbers.includes(n)) {
+        missings[n][i] = 0;
+      } else {
+        let found = false;
+        for (let j = i + 1; j < dataSlice.length; j++) {
+          if (dataSlice[j].numbers.includes(n)) {
+            missings[n][i] = j - i;
+            found = true;
+            break;
+          }
+        }
+        missings[n][i] = found ? missings[n][i] : dataSlice.length - i;
+      }
+    }
+  }
+
+  const numberCounts = {};
+  for (let n = 1; n <= 80; n++) {
+    numberCounts[n] = dataSlice.filter(d => d.numbers.includes(n)).length;
+  }
+
+  const main = document.createElement('div');
+  main.className = 'dist-main';
+
+  const periodDiv = document.createElement('div');
+  periodDiv.className = 'dist-period-col';
+  periodDiv.innerHTML = `
+    <table class="dist-table">
+      <thead>
+        <tr><th colspan="2">期号</th></tr>
+        <tr><th style="width:16px;">序</th><th style="width:42px;">期号</th></tr>
+      </thead>
+      <tbody>
+        ${dataSlice.map((d, i) => `
+          <tr>
+            <td style="color:#999;font-size:8px;">${i+1}</td>
+            <td style="font-family:Consolas,monospace;font-size:8px;color:#333">${d.period.slice(-4)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div class="dist-footer-label">出现次数</div>
+  `;
+  main.appendChild(periodDiv);
+
+  const statDiv = document.createElement('div');
+  statDiv.className = 'dist-stat-col';
+  let statTbody = '';
+  dataSlice.forEach((d) => {
+    const z10c = getZone10Counts(d.numbers);
+    let rowHtml = '';
+    z10c.forEach((c) => {
+      if (c >= 3) {
+        rowHtml += `<td><span class="dist-stat-ball">${c}</span></td>`;
+      } else {
+        rowHtml += `<td><span class="dist-stat-num">${c}</span></td>`;
+      }
+    });
+    statTbody += `<tr>${rowHtml}</tr>`;
+  });
+  statDiv.innerHTML = `
+    <table class="dist-table">
+      <thead>
+        <tr><th colspan="10" style="color:#e53935;font-size:10px;">分区统计</th></tr>
+        <tr>${[1,2,3,4,5,6,7,8,9,10].map(i => `<th>${i}</th>`).join('')}</tr>
+      </thead>
+      <tbody>${statTbody}</tbody>
+    </table>
+    <div class="dist-footer-placeholder"></div>
+  `;
+  main.appendChild(statDiv);
+
+  const zonesDiv = document.createElement('div');
+  zonesDiv.className = 'dist-zones-row';
+
+  ZONES10.forEach((zone) => {
+    const zoneDiv = document.createElement('div');
+    zoneDiv.className = 'dist-zone-col';
+
+    const nums = [];
+    for (let n = zone.range[0]; n <= zone.range[1]; n++) nums.push(n);
+
+    let tbodyHtml = '';
+    dataSlice.forEach((d, rowIdx) => {
+      let rowHtml = '';
+      nums.forEach((n) => {
+        if (d.numbers.includes(n)) {
+          rowHtml += `<td class="hit"><span class="dist-ball">${String(n).padStart(2,'0')}</span></td>`;
+        } else {
+          const miss = missings[n][rowIdx];
+          rowHtml += `<td><span class="dist-miss">${miss}</span></td>`;
+        }
+      });
+      tbodyHtml += `<tr>${rowHtml}</tr>`;
+    });
+
+    const zoneMaxCount = Math.max(...nums.map(n => numberCounts[n]));
+    const statHtml = nums.map(n => {
+      const count = numberCounts[n];
+      const barHeight = zoneMaxCount > 0 ? Math.max(2, Math.round((count / zoneMaxCount) * 35)) : 0;
+      return `
+        <div class="zone-stat-cell">
+          <div class="zone-stat-count">${count}</div>
+          <div class="zone-stat-bar" style="height:${barHeight}px;"></div>
+        </div>
+      `;
+    }).join('');
+
+    zoneDiv.innerHTML = `
+      <table class="dist-table">
+        <thead>
+          <tr><th colspan="8" style="color:${zone.color};font-size:10px;">${zone.label} (${String(zone.range[0]).padStart(2,'0')}-${String(zone.range[1]).padStart(2,'0')})</th></tr>
+          <tr>${nums.map(n => `<th>${String(n).padStart(2,'0')}</th>`).join('')}</tr>
+        </thead>
+        <tbody>${tbodyHtml}</tbody>
+      </table>
+      <div class="zone-stat" style="--cols:${nums.length};">${statHtml}</div>
+    `;
+    zonesDiv.appendChild(zoneDiv);
+  });
+
+  main.appendChild(zonesDiv);
+  container.appendChild(main);
+}
+
+// ==================== 尾号走势 ====================
+const TAILS = [
+  { id: 0, label: '尾号0', color: '#e53935' },
+  { id: 1, label: '尾号1', color: '#e53935' },
+  { id: 2, label: '尾号2', color: '#e53935' },
+  { id: 3, label: '尾号3', color: '#e53935' },
+  { id: 4, label: '尾号4', color: '#e53935' },
+  { id: 5, label: '尾号5', color: '#e53935' },
+  { id: 6, label: '尾号6', color: '#e53935' },
+  { id: 7, label: '尾号7', color: '#e53935' },
+  { id: 8, label: '尾号8', color: '#e53935' },
+  { id: 9, label: '尾号9', color: '#e53935' },
+];
+
+function getTailCounts(numbers) {
+  const counts = new Array(10).fill(0);
+  numbers.forEach(n => {
+    const tail = n % 10;
+    counts[tail]++;
+  });
+  return counts;
+}
+
+function buildTailTables() {
+  const container = document.getElementById('tailTables');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // 为每期数据预计算尾号个数
+  const dataSlice = drawData.slice(0, 30).reverse().map(d => ({
+    ...d,
+    tailCounts: getTailCounts(d.numbers),
+  }));
+
+  const maxCount = 6;
+
+  const main = document.createElement('div');
+  main.className = 'trend-main';
+
+  // 左侧：期号列
+  const periodDiv = document.createElement('div');
+  periodDiv.className = 'trend-period-col';
+  periodDiv.innerHTML = `
+    <table class="trend-table">
+      <thead>
+        <tr><th colspan="2" style="font-size:9px;">期号</th></tr>
+        <tr><th style="width:22px;">序</th><th style="width:46px;">期号</th></tr>
+      </thead>
+      <tbody>
+        ${dataSlice.map((d, i) => `
+          <tr>
+            <td style="color:var(--fg-secondary);font-size:9px;">${i+1}</td>
+            <td style="font-family:Consolas,monospace;font-size:9px;color:var(--fg-secondary)">${d.period.slice(-4)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  main.appendChild(periodDiv);
+
+  // 右侧：10个尾号横排
+  const tailsDiv = document.createElement('div');
+  tailsDiv.className = 'trend-zones-row';
+
+  TAILS.forEach((tail, tidx) => {
+    const tailDiv = document.createElement('div');
+    tailDiv.className = 'trend-zone-col';
+    tailDiv.innerHTML = `
+      <div class="trend-wrapper" id="tail-wrapper-${tidx}">
+        <table class="trend-table" id="tail-table-${tidx}">
+          <thead>
+            <tr>
+              <th colspan="${maxCount+1}" style="color:${tail.color};font-size:10px;padding:1px 0;">
+                ${tail.label}的个数
+              </th>
+            </tr>
+            <tr>${Array.from({length: maxCount+1}, (_, i) => `<th>${i}</th>`).join('')}</tr>
+          </thead>
+          <tbody>
+            ${dataSlice.map((d, rowIdx) => {
+              const count = d.tailCounts[tidx];
+              return `<tr>
+                ${Array.from({length: maxCount+1}, (_, colIdx) => {
+                  if (colIdx === count) {
+                    return `<td class="trend-hit" data-row="${rowIdx}" data-col="${colIdx}">
+                      <span class="trend-ball" style="background:${tail.color}">${count}</span>
+                    </td>`;
+                  }
+                  return `<td></td>`;
+                }).join('')}
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <svg class="trend-svg" id="tail-svg-${tidx}"></svg>
+      </div>
+    `;
+    tailsDiv.appendChild(tailDiv);
+  });
+
+  main.appendChild(tailsDiv);
+  container.appendChild(main);
+
+  TAILS.forEach((tail, tidx) => {
+    requestAnimationFrame(() => drawTailLines(tidx, tail.color));
+  });
+}
+
+function drawTailLines(tailIdx, color) {
+  const svg = document.getElementById(`tail-svg-${tailIdx}`);
+  const wrapper = document.getElementById(`tail-wrapper-${tailIdx}`);
+  const table = document.getElementById(`tail-table-${tailIdx}`);
+  if (!svg || !wrapper || !table) return;
+
+  const tRect = table.getBoundingClientRect();
+  svg.style.width = tRect.width + 'px';
+  svg.style.height = tRect.height + 'px';
+
+  const balls = wrapper.querySelectorAll('.trend-ball');
+  if (balls.length < 2) return;
+
+  const points = [];
+  balls.forEach(ball => {
+    const cell = ball.closest('td');
+    if (!cell) return;
+    const cellRect = cell.getBoundingClientRect();
+    const tableRect = table.getBoundingClientRect();
+    points.push({
+      x: cellRect.left - tableRect.left + cellRect.width / 2,
+      y: cellRect.top - tableRect.top + cellRect.height / 2,
+    });
+  });
+
+  points.sort((a, b) => a.y - b.y);
+
+  let pathD = '';
+  points.forEach((p, i) => {
+    if (i === 0) pathD += `M ${p.x} ${p.y}`;
+    else pathD += ` L ${p.x} ${p.y}`;
+  });
+
+  svg.innerHTML = `<path d="${pathD}" stroke="${color}" stroke-width="2" fill="none" opacity="0.75" />`;
+}
+
+function drawTrendLines(zoneIdx, color) {
+  const svg = document.getElementById(`trend-svg-${zoneIdx}`);
+  const wrapper = document.getElementById(`trend-wrapper-${zoneIdx}`);
+  const table = document.getElementById(`trend-table-${zoneIdx}`);
+  if (!svg || !wrapper || !table) return;
+
+  // 设置SVG尺寸与wrapper一致
+  const wRect = wrapper.getBoundingClientRect();
+  const tRect = table.getBoundingClientRect();
+  svg.style.width = tRect.width + 'px';
+  svg.style.height = tRect.height + 'px';
+
+  const balls = wrapper.querySelectorAll('.trend-ball');
+  if (balls.length < 2) return;
+
+  // 按行顺序收集点坐标（从表头往下算）
+  const points = [];
+  balls.forEach(ball => {
+    const cell = ball.closest('td');
+    if (!cell) return;
+    const cellRect = cell.getBoundingClientRect();
+    const tableRect = table.getBoundingClientRect();
+    points.push({
+      x: cellRect.left - tableRect.left + cellRect.width / 2,
+      y: cellRect.top - tableRect.top + cellRect.height / 2,
+    });
+  });
+
+  // 按y坐标排序（确保从上到下）
+  points.sort((a, b) => a.y - b.y);
+
+  let pathD = '';
+  points.forEach((p, i) => {
+    if (i === 0) pathD += `M ${p.x} ${p.y}`;
+    else pathD += ` L ${p.x} ${p.y}`;
+  });
+
+  svg.innerHTML = `<path d="${pathD}" stroke="${color}" stroke-width="2" fill="none" opacity="0.75" />`;
+}
+
+// ==================== 数据获取 ====================
+
+function downloadDataTxt() {
+  if (drawData.length === 0) {
+    alert('暂无数据，请先获取最新开奖数据');
+    return;
+  }
+  const data = getDistDataSlice().reverse();
+  const lines = [];
+  lines.push('快乐8开奖数据');
+  lines.push('期号\t开奖号码');
+  data.forEach(item => {
+    const sortedNums = [...item.numbers].sort((a, b) => a - b);
+    lines.push(item.period + '\t' + sortedNums.join(' '));
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const link = document.createElement('a');
+  link.download = '快乐8开奖数据.txt';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+async function fetchData(limit) {
+  limit = limit || 30;
+  const statusEl = document.getElementById('dataStatus');
+  statusEl.textContent = '正在获取最新开奖数据...';
+  statusEl.className = 'data-status';
+
+  try {
+    const apiUrl = "https://api.huiniao.top/interface/home/lotteryHistory?type=klb&page=1&limit=" + limit;
+    const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(20000) });
+    if (!resp.ok) throw new Error('请求失败');
+    const json = await resp.json();
+
+    if (json.code !== 200 && json.code !== 0 && json.code !== 1) {
+      throw new Error(json.info || '接口返回异常');
+    }
+
+    // 数据路径: data.data.list
+    const dataObj = json.data || {};
+    const lastInfo = dataObj.last || null;
+    const listData = dataObj.data || dataObj;
+    const list = listData.list || listData;
+
+    if (!Array.isArray(list) || list.length === 0) {
+      throw new Error('返回数据为空');
+    }
+
+    const results = [];
+    list.forEach(item => {
+      const period = item.code || item.qihao || item.issue || item.period || item.no || '';
+      const date = item.day || item.date || item.open_time || item.kjrq || '';
+
+      // 号码解析：API返回 one~twenty 共20个独立字段
+      const numKeys = ['one','two','three','four','five','six','seven','eight','nine','ten',
+                        'eleven','twelve','thirteen','fourteen','fifteen','sixteen',
+                        'seventeen','eighteen','nineteen','twenty'];
+      let nums = numKeys.map(k => parseInt(item[k])).filter(n => !isNaN(n) && n >= 1 && n <= 80);
+
+      // 兼容：如果独立字段不存在，尝试从合并字段解析
+      if (nums.length < 10) {
+        const numsStr = item.number || item.nums || item.haoma || item.numbers || '';
+        nums = String(numsStr).split(/[\s,，]+/).map(Number).filter(n => n >= 1 && n <= 80);
+      }
+
+      if (nums.length < 10 || !period) return;
+
+      results.push({
+        period: String(period),
+        numbers: nums.sort((a, b) => a - b),
+        zoneCounts: getZoneCounts(nums),
+        date: String(date),
+      });
+    });
+
+    // 如果 lastInfo 存在且不在列表中，追加到最前面
+    if (lastInfo) {
+      const lastPeriod = String(lastInfo.code || lastInfo.qihao || lastInfo.issue || lastInfo.no || '');
+      const numKeys = ['one','two','three','four','five','six','seven','eight','nine','ten',
+                        'eleven','twelve','thirteen','fourteen','fifteen','sixteen',
+                        'seventeen','eighteen','nineteen','twenty'];
+      let lastNums = numKeys.map(k => parseInt(lastInfo[k])).filter(n => !isNaN(n) && n >= 1 && n <= 80);
+
+      if (lastNums.length < 10) {
+        const lastNumsStr = lastInfo.number || lastInfo.nums || lastInfo.haoma || '';
+        lastNums = String(lastNumsStr).split(/[\s,，]+/).map(Number).filter(n => n >= 1 && n <= 80);
+      }
+
+      if (lastPeriod && lastNums.length >= 10) {
+        const alreadyHas = results.some(r => r.period === lastPeriod);
+        if (!alreadyHas) {
+          results.unshift({
+            period: lastPeriod,
+            numbers: lastNums.sort((a, b) => a - b),
+            zoneCounts: getZoneCounts(lastNums),
+            date: String(lastInfo.day || lastInfo.date || lastInfo.open_time || ''),
+          });
+        }
+      }
+    }
+
+    if (results.length < 3) throw new Error('有效数据不足');
+
+    // 按期号降序排列（最新在前）
+    results.sort((a, b) => {
+      const pa = a.period.replace(/\D/g, '');
+      const pb = b.period.replace(/\D/g, '');
+      return pb.localeCompare(pa);
+    });
+
+    drawData = results;
+    localStorage.setItem('kl8_drawdata', JSON.stringify(drawData));
+    statusEl.textContent = `已加载 ${drawData.length} 期数据`;
+    statusEl.className = 'data-status ok';
+    const distStatusEl = document.getElementById('distStatus');
+    if (distStatusEl) {
+      distStatusEl.textContent = `已加载 ${drawData.length} 期数据`;
+      distStatusEl.className = 'data-status ok';
+    }
+    const dist4StatusEl = document.getElementById('dist4Status');
+    if (dist4StatusEl) {
+      dist4StatusEl.textContent = `已加载 ${drawData.length} 期数据`;
+      dist4StatusEl.className = 'data-status ok';
+    }
+    const dist10StatusEl = document.getElementById('dist10Status');
+    if (dist10StatusEl) {
+      dist10StatusEl.textContent = `已加载 ${drawData.length} 期数据`;
+      dist10StatusEl.className = 'data-status ok';
+    }
+    const tailStatusEl = document.getElementById('tailStatus');
+    if (tailStatusEl) {
+      tailStatusEl.textContent = `已加载 ${drawData.length} 期数据`;
+      tailStatusEl.className = 'data-status ok';
+    }
+    const verifyStatusEl = document.getElementById('verifyStatus');
+    if (verifyStatusEl) {
+      verifyStatusEl.textContent = `已加载 ${drawData.length} 期数据`;
+      verifyStatusEl.className = 'data-status ok';
+    }
+    buildTrendTables();
+    buildDistribution();
+    buildDistribution4();
+    buildDistribution10();
+    buildTailTables();
+    simUpdateCounts();  } catch (e) {
+    console.error('获取数据失败:', e.message);
+    // 尝试本地缓存
+    const cached = localStorage.getItem('kl8_drawdata');
+    if (cached) {
+      try {
+        drawData = JSON.parse(cached);
+        statusEl.textContent = `网络失败，使用缓存（${drawData.length}期）`;
+        statusEl.className = 'data-status ok';
+        const distStatusEl2 = document.getElementById('distStatus');
+        if (distStatusEl2) {
+          distStatusEl2.textContent = `网络失败，使用缓存（${drawData.length}期）`;
+          distStatusEl2.className = 'data-status ok';
+        }
+        const tailStatusEl2 = document.getElementById('tailStatus');
+        if (tailStatusEl2) {
+          tailStatusEl2.textContent = `网络失败，使用缓存（${drawData.length}期）`;
+          tailStatusEl2.className = 'data-status ok';
+        }
+        const verifyStatusEl2 = document.getElementById('verifyStatus');
+        if (verifyStatusEl2) {
+          verifyStatusEl2.textContent = `网络失败，使用缓存（${drawData.length}期）`;
+          verifyStatusEl2.className = 'data-status ok';
+        }
+        buildTrendTables();
+        buildDistribution();
+        buildDistribution4();
+        buildDistribution10();
+        buildTailTables();
+        return;
+      } catch (e2) { /* ignore */ }
+    }
+    statusEl.textContent = '未加载数据';
+    statusEl.className = 'data-status';
+  }
+}
+
+// ==================== 手动录入 ====================
+function showManualInput() {
+  document.getElementById('manualModal').classList.add('show');
+}
+function closeManualModal() {
+  document.getElementById('manualModal').classList.remove('show');
+}
+function parseManualInput() {
+  const text = document.getElementById('manualInput').value.trim();
+  if (!text) { alert('请输入数据！'); return; }
+
+  const lines = text.split('\n').filter(l => l.trim());
+  const parsed = [];
+
+  for (const line of lines) {
+    const parts = line.trim().split(/[,，\t]+/);
+    if (parts.length < 2) continue;
+
+    const period = parts[0].trim();
+    const nums = parts[1].trim().split(/[\s,，]+/).map(Number).filter(n => n >= 1 && n <= 80);
+
+    if (nums.length < 5) continue; // 至少5个号码才有效
+
+    parsed.push({
+      period,
+      numbers: nums.sort((a, b) => a - b),
+      zoneCounts: getZoneCounts(nums),
+    });
+  }
+
+  if (parsed.length === 0) {
+    alert('未解析到有效数据，请检查格式！');
+    return;
+  }
+
+  drawData = parsed.reverse();
+  localStorage.setItem('kl8_drawdata', JSON.stringify(drawData));
+
+  const statusEl = document.getElementById('dataStatus');
+  statusEl.textContent = `已录入 ${drawData.length} 期数据`;
+  statusEl.className = 'data-status ok';
+  const distStatusEl = document.getElementById('distStatus');
+  if (distStatusEl) {
+    distStatusEl.textContent = `已录入 ${drawData.length} 期数据`;
+    distStatusEl.className = 'data-status ok';
+  }
+  const tailStatusEl3 = document.getElementById('tailStatus');
+  if (tailStatusEl3) {
+    tailStatusEl3.textContent = `已录入 ${drawData.length} 期数据`;
+    tailStatusEl3.className = 'data-status ok';
+  }
+
+  buildTrendTables();
+  buildDistribution();
+  buildDistribution4();
+  buildDistribution10();
+  buildTailTables();
+  closeManualModal();
+}
+
+// ==================== Tab 初始化 ====================
+function initTabDrag() {
+}
+
+// ==================== Tab 切换 ====================
+function switchTab(tab) {
+  const tabsContainer = document.querySelector('.tabs');
+  const buttons = tabsContainer.querySelectorAll('.tab-btn');
+  
+  buttons.forEach((b) => {
+    const onclickValue = b.getAttribute('onclick');
+    const tabName = onclickValue.match(/switchTab\('(.+?)'\)/)?.[1];
+    b.classList.toggle('active', tabName === tab);
+  });
+  
+  document.getElementById('pickPanel').classList.toggle('active', tab === 'pick');
+  document.getElementById('simPanel').classList.toggle('active', tab === 'sim');
+  document.getElementById('trendPanel').classList.toggle('active', tab === 'trend');
+  document.getElementById('distPanel').classList.toggle('active', tab === 'dist');
+  document.getElementById('dist4Panel').classList.toggle('active', tab === 'dist4');
+  document.getElementById('dist10Panel').classList.toggle('active', tab === 'dist10');
+  document.getElementById('tailPanel').classList.toggle('active', tab === 'tail');
+  document.getElementById('verifyPanel').classList.toggle('active', tab === 'verify');
+
+  if (tab === 'sim') {
+    if (drawData.length === 0) {
+      const cached = localStorage.getItem('kl8_drawdata');
+      if (cached) { try { drawData = JSON.parse(cached); } catch(e){} }
+    }
+    simUpdateCounts();
+  }
+
+  const cached = localStorage.getItem('kl8_drawdata');
+
+  if (tab === 'trend') {
+    if (drawData.length === 0) {
+      if (cached) {
+        drawData = JSON.parse(cached);
+        document.getElementById('dataStatus').textContent = `已加载 ${drawData.length} 期缓存数据`;
+        document.getElementById('dataStatus').className = 'data-status ok';
+      }
+    }
+    if (drawData.length > 0) buildTrendTables();
+    else fetchData();
+  }
+
+  if (tab === 'dist') {
+    if (drawData.length === 0) {
+      if (cached) {
+        drawData = JSON.parse(cached);
+        document.getElementById('distStatus').textContent = `已加载 ${drawData.length} 期缓存数据`;
+        document.getElementById('distStatus').className = 'data-status ok';
+      }
+    }
+    if (drawData.length > 0) buildDistribution();
+    else fetchData();
+  }
+
+  if (tab === 'dist4') {
+    if (drawData.length === 0) {
+      if (cached) {
+        drawData = JSON.parse(cached);
+        document.getElementById('dist4Status').textContent = `已加载 ${drawData.length} 期缓存数据`;
+        document.getElementById('dist4Status').className = 'data-status ok';
+      }
+    }
+    if (drawData.length > 0) buildDistribution4();
+    else fetchData();
+  }
+
+  if (tab === 'dist10') {
+    if (drawData.length === 0) {
+      if (cached) {
+        drawData = JSON.parse(cached);
+        document.getElementById('dist10Status').textContent = `已加载 ${drawData.length} 期缓存数据`;
+        document.getElementById('dist10Status').className = 'data-status ok';
+      }
+    }
+    if (drawData.length > 0) buildDistribution10();
+    else fetchData();
+  }
+
+  if (tab === 'tail') {
+    if (drawData.length === 0) {
+      if (cached) {
+        drawData = JSON.parse(cached);
+        document.getElementById('tailStatus').textContent = `已加载 ${drawData.length} 期缓存数据`;
+        document.getElementById('tailStatus').className = 'data-status ok';
+      }
+    }
+    if (drawData.length > 0) buildTailTables();
+    else fetchData();
+  }
+
+  if (tab === 'verify') {
+    if (drawData.length === 0) {
+      if (cached) {
+        drawData = JSON.parse(cached);
+        document.getElementById('verifyStatus').textContent = `已加载 ${drawData.length} 期缓存数据`;
+        document.getElementById('verifyStatus').className = 'data-status ok';
+      }
+    } else {
+      document.getElementById('verifyStatus').textContent = `已加载 ${drawData.length} 期数据`;
+      document.getElementById('verifyStatus').className = 'data-status ok';
+    }
+    if (drawData.length === 0) fetchData();
+  }
+}
+
+// 快乐8奖金规则（根据快乐8奖金对照表.xlsx）
+const PRIZE_RULES = {
+  1: { name: '选一', prizes: { 1: 4.6 }, minHit: 1 },
+  2: { name: '选二', prizes: { 2: 19 }, minHit: 2 },
+  3: { name: '选三', prizes: { 3: 53, 2: 3 }, minHit: 2 },
+  4: { name: '选四', prizes: { 4: 100, 3: 5, 2: 3 }, minHit: 2 },
+  5: { name: '选五', prizes: { 5: 1000, 4: 21, 3: 3 }, minHit: 3 },
+  6: { name: '选六', prizes: { 6: 3000, 5: 30, 4: 10, 3: 3 }, minHit: 3 },
+  7: { name: '选七', prizes: { 7: 10000, 6: 300, 5: 30, 4: 4, 0: 2 }, minHit: 4 },
+  8: { name: '选八', prizes: { 8: 50000, 7: 800, 6: 80, 5: 10, 4: 3, 0: 2 }, minHit: 4 },
+  9: { name: '选九', prizes: { 9: 250000, 8: 2000, 7: 225, 6: 22, 5: 5, 4: 3, 0: 2 }, minHit: 4 },
+  10: { name: '选十', prizes: { 10: 5000000, 9: 8000, 8: 720, 7: 80, 6: 5, 5: 3, 0: 2 }, minHit: 5 },
+};
+
+function getPrize(type, hitCount) {
+  const rule = PRIZE_RULES[type] || PRIZE_RULES[10];
+  if (rule.prizes[hitCount] !== undefined) {
+    return rule.prizes[hitCount];
+  }
+  return 0;
+}
+
+function getPrizeText(prize) {
+  if (prize === undefined || prize === 0) return '';
+  if (prize >= 10000) return `+${(prize/10000).toFixed(0)}万`;
+  return `+${prize.toFixed(prize % 1 === 0 ? 0 : 2)}元`;
+}
+
+// ==================== 模拟验算 ====================
+let verifyPeriods = 1;
+let verifyMode = 'single'; // 'single', 'multiple', 'dantuo'
+
+function setVerifyMode(mode, btn) {
+  verifyMode = mode;
+  document.querySelectorAll('.verify-mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const ta = document.getElementById('verifyInput');
+  if (mode === 'single') {
+    ta.placeholder = '每行输入一注号码，号码间用空格或逗号分隔\n例如：01 05 12 23 34 41 55 62 71 08\n可输入多注，每注占一行';
+  } else if (mode === 'multiple') {
+    ta.placeholder = '每行输入一组复式号码，号码数量可多于玩法要求\n例如：01 05 12 23 34 41 55 62 71 08 19 27\n系统自动展开为所有组合进行验算';
+  } else {
+    ta.placeholder = '每行输入一注胆拖号码，胆码和拖码用 | 分隔\n例如：01 05|12 23 34 41 55 62 71 08\n胆码必须包含在每注组合中';
+  }
+}
+
+function setVerifyPeriod(n, btn) {
+  verifyPeriods = n;
+  document.getElementById('verifyPeriodNum').value = n;
+  document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function syncPeriodFromInput() {
+  const val = parseInt(document.getElementById('verifyPeriodNum').value) || 1;
+  verifyPeriods = Math.max(1, Math.min(100, val));
+  document.getElementById('verifyPeriodNum').value = verifyPeriods;
+  document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+}
+
+function onPlayTypeChange() {
+  updateVerifyCount();
+}
+
+function parseVerifyInput() {
+  const text = document.getElementById('verifyInput').value.trim();
+  if (!text) return [];
+  const lines = text.split('\n').filter(l => l.trim());
+  const bets = [];
+  for (const line of lines) {
+    const nums = line.trim().split(/[\s,，]+/).map(s => parseInt(s)).filter(n => !isNaN(n) && n >= 1 && n <= 80);
+    const unique = [...new Set(nums)].sort((a, b) => a - b);
+    if (unique.length > 0) bets.push(unique);
+  }
+  return bets;
+}
+
+function updateVerifyCount() {
+  let count;
+  if (verifyMode === 'dantuo') {
+    count = parseDanTuoInput().length;
+  } else {
+    count = parseVerifyInput().length;
+  }
+  document.getElementById('verifyCount').textContent = count;
+}
+
+function clearVerify() {
+  document.getElementById('verifyInput').value = '';
+  updateVerifyCount();
+}
+
+function copyVerify() {
+  const ta = document.getElementById('verifyInput');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(() => showToast('已复制')).catch(() => {
+    document.execCommand('copy');
+    showToast('已复制');
+  });
+}
+
+function randomVerify() {
+  const type = parseInt(document.getElementById('verifyPlayType').value) || 10;
+  const count = type <= 10 ? type : 10;
+  const lines = [];
+
+  if (verifyMode === 'dantuo') {
+    // 胆拖随机：1-3个胆码，其余为拖码
+    for (let i = 0; i < 5; i++) {
+      const pool = Array.from({length: 80}, (_, j) => j + 1);
+      shuffle(pool);
+      const danCount = Math.min(Math.floor(Math.random() * 3) + 1, count - 1);
+      const tuoCount = count - danCount + Math.floor(Math.random() * 3);
+      const danNums = pool.slice(0, danCount).sort((a, b) => a - b);
+      const tuoNums = pool.slice(danCount, danCount + tuoCount).sort((a, b) => a - b);
+      lines.push(
+        danNums.map(n => String(n).padStart(2, '0')).join(' ') + '|' +
+        tuoNums.map(n => String(n).padStart(2, '0')).join(' ')
+      );
+    }
+  } else {
+    for (let i = 0; i < 10; i++) {
+      const pool = Array.from({length: 80}, (_, j) => j + 1);
+      shuffle(pool);
+      const numCount = verifyMode === 'multiple' ? count + Math.floor(Math.random() * 3) + 1 : count;
+      const nums = pool.slice(0, numCount).sort((a, b) => a - b);
+      lines.push(nums.map(n => String(n).padStart(2, '0')).join(' '));
+    }
+  }
+  document.getElementById('verifyInput').value = lines.join('\n');
+  updateVerifyCount();
+}
+
+function runVerify() {
+  if (drawData.length === 0) {
+    showToast('请先获取开奖数据');
+    return;
+  }
+
+  const type = parseInt(document.getElementById('verifyPlayType').value) || 10;
+  const required = type <= 10 ? type : 10;
+  const periods = verifyPeriods;
+  const recentData = drawData.slice(0, periods);
+
+  if (verifyMode === 'single') {
+    runVerifySingle(type, required, recentData);
+  } else if (verifyMode === 'multiple') {
+    runVerifyMultiple(type, required, recentData);
+  } else {
+    runVerifyDanTuo(type, required, recentData);
+  }
+}
+
+// ---------- 单式验算 ----------
+function runVerifySingle(type, required, recentData) {
+  const bets = parseVerifyInput();
+  if (bets.length === 0) {
+    showToast('请输入验算号码');
+    return;
+  }
+
+  const firstOnly = document.getElementById('verifyFirstOnly').checked;
+  const checkBets = firstOnly ? bets.slice(0, 1) : bets;
+  const validBets = checkBets.filter(b => b.length >= required);
+  if (validBets.length === 0) {
+    document.getElementById('verifyResult').innerHTML = '<div class="verify-result-empty">号码数量不足，当前玩法至少需要 ' + required + ' 个号码</div>';
+    return;
+  }
+
+  let html = '';
+  let grandTotalBets = 0, grandWinBets = 0, grandTotalPrize = 0;
+  let grandPrizeBreakdown = {};
+
+  recentData.forEach(draw => {
+    const drawSet = new Set(draw.numbers);
+    let periodHtml = '';
+    let periodTotal = 0, periodWins = 0, periodPrize = 0;
+
+    validBets.forEach((bet, idx) => {
+      const hits = bet.filter(n => drawSet.has(n));
+      const hitCount = hits.length;
+      const isWin = checkWin(type, hitCount);
+      const prize = getPrize(type, hitCount);
+      const prizeNum = typeof prize === 'number' ? prize : 0;
+      if (isWin) { periodWins++; periodPrize += prizeNum; }
+      periodTotal++;
+      grandTotalBets++;
+      if (isWin) {
+        grandWinBets++;
+        grandTotalPrize += prizeNum;
+        grandPrizeBreakdown[hitCount] = (grandPrizeBreakdown[hitCount] || 0) + prizeNum;
+      }
+
+      const hitBalls = bet.map(n => {
+        const isHit = drawSet.has(n);
+        return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+      }).join('');
+      const prizeTag = prizeNum > 0 ? `<span style="color:var(--gold);font-weight:700;margin-left:8px;">+${formatPrize(prizeNum)}</span>` : '';
+
+      periodHtml += `
+        <div style="margin-bottom:8px;padding:8px;background:var(--bg-dark);border-radius:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:13px;font-weight:600;">第${idx + 1}注</span>
+            <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖</span>' : ''}${prizeTag}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
+          ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中号码: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="verify-result-item">
+        <div class="verify-result-period">
+          第 ${draw.period} 期 <span style="font-size:12px;color:var(--fg-secondary);font-weight:normal;">(${periodWins}/${periodTotal}注中奖)</span>
+          ${periodPrize > 0 ? '<span class="verify-hit-tag win">+' + formatPrize(periodPrize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}
+        </div>
+        <div class="verify-result-detail">${periodHtml}</div>
+      </div>
+    `;
+  });
+
+  renderVerifySummary(type, recentData, validBets.length, grandTotalBets, grandWinBets, grandTotalPrize, grandPrizeBreakdown, html);
+}
+
+// ---------- 复式验算 ----------
+function runVerifyMultiple(type, required, recentData) {
+  const bets = parseVerifyInput();
+  if (bets.length === 0) {
+    showToast('请输入验算号码');
+    return;
+  }
+
+  const validBets = bets.filter(b => b.length >= required);
+  if (validBets.length === 0) {
+    document.getElementById('verifyResult').innerHTML = '<div class="verify-result-empty">号码数量不足，当前玩法至少需要 ' + required + ' 个号码</div>';
+    return;
+  }
+
+  let html = '';
+  let grandTotalCombos = 0, grandWinCombos = 0, grandTotalPrize = 0;
+  let grandPrizeBreakdown = {};
+
+  recentData.forEach(draw => {
+    const drawSet = new Set(draw.numbers);
+    let periodHtml = '';
+    let periodTotalCombos = 0, periodWinCombos = 0, periodPrize = 0;
+
+    validBets.forEach((bet, idx) => {
+      const k = bet.length;
+      const totalCombos = simCombination(k, required);
+      const m = bet.filter(n => drawSet.has(n)).length;
+
+      let betPrize = 0;
+      let betWinCombos = 0;
+      const hitDist = {};
+
+      for (let j = 0; j <= Math.min(m, required); j++) {
+        if (k - m < required - j) continue;
+        const combos = simCombination(m, j) * simCombination(k - m, required - j);
+        if (combos === 0) continue;
+        const prize = getPrize(type, j);
+        const prizeNum = typeof prize === 'number' ? prize : 0;
+        if (prizeNum > 0) {
+          betPrize += combos * prizeNum;
+          betWinCombos += combos;
+          hitDist[j] = { combos, prize: prizeNum };
+          grandPrizeBreakdown[j] = (grandPrizeBreakdown[j] || 0) + combos * prizeNum;
+        }
+      }
+
+      periodTotalCombos += totalCombos;
+      periodWinCombos += betWinCombos;
+      periodPrize += betPrize;
+      grandTotalCombos += totalCombos;
+      grandWinCombos += betWinCombos;
+      grandTotalPrize += betPrize;
+
+      const hitBalls = bet.map(n => {
+        const isHit = drawSet.has(n);
+        return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+      }).join('');
+
+      let distHtml = '';
+      Object.entries(hitDist).sort((a, b) => parseInt(b[0]) - parseInt(a[0])).forEach(([hit, info]) => {
+        distHtml += `<span style="font-size:11px;background:${info.prize > 0 ? 'var(--gold)' : 'var(--bg-light)'};color:${info.prize > 0 ? '#1a1a2e' : 'var(--fg-secondary)'};padding:2px 6px;border-radius:4px;margin-right:4px;">中${hit}个×${info.combos}注</span>`;
+      });
+
+      periodHtml += `
+        <div style="margin-bottom:8px;padding:8px;background:var(--bg-dark);border-radius:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:13px;font-weight:600;">第${idx + 1}组 (复式${k}码，${totalCombos}注)</span>
+            <span>命中 <strong style="color:var(--accent);">${m}</strong>/${k} ${betPrize > 0 ? '<span class="verify-hit-tag win">+' + formatPrize(betPrize) + '</span>' : ''}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
+          ${distHtml ? `<div style="margin-top:6px;">${distHtml}</div>` : ''}
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="verify-result-item">
+        <div class="verify-result-period">
+          第 ${draw.period} 期 <span style="font-size:12px;color:var(--fg-secondary);font-weight:normal;">(${periodWinCombos}/${periodTotalCombos}注中奖)</span>
+          ${periodPrize > 0 ? '<span class="verify-hit-tag win">+' + formatPrize(periodPrize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}
+        </div>
+        <div class="verify-result-detail">${periodHtml}</div>
+      </div>
+    `;
+  });
+
+  renderVerifySummary(type, recentData, validBets.length, grandTotalCombos, grandWinCombos, grandTotalPrize, grandPrizeBreakdown, html, true);
+}
+
+// ---------- 胆拖验算 ----------
+function parseDanTuoInput() {
+  const text = document.getElementById('verifyInput').value.trim();
+  if (!text) return [];
+  const lines = text.split('\n').filter(l => l.trim());
+  const bets = [];
+  for (const line of lines) {
+    const parts = line.split('|');
+    if (parts.length !== 2) continue;
+    const dan = parts[0].trim().split(/[\s,，]+/).map(s => parseInt(s)).filter(n => !isNaN(n) && n >= 1 && n <= 80);
+    const tuo = parts[1].trim().split(/[\s,，]+/).map(s => parseInt(s)).filter(n => !isNaN(n) && n >= 1 && n <= 80);
+    const uniqueDan = [...new Set(dan)].sort((a, b) => a - b);
+    const uniqueTuo = [...new Set(tuo)].filter(n => !uniqueDan.includes(n)).sort((a, b) => a - b);
+    if (uniqueDan.length > 0 && uniqueTuo.length > 0) {
+      bets.push({ dan: uniqueDan, tuo: uniqueTuo });
+    }
+  }
+  return bets;
+}
+
+function runVerifyDanTuo(type, required, recentData) {
+  const bets = parseDanTuoInput();
+  if (bets.length === 0) {
+    showToast('请输入胆拖号码，格式：胆码|拖码\n例如：01 05|12 23 34 41 55 62 71 08');
+    return;
+  }
+
+  const validBets = bets.filter(b => b.dan.length < required && (b.dan.length + b.tuo.length) >= required);
+  if (validBets.length === 0) {
+    document.getElementById('verifyResult').innerHTML = '<div class="verify-result-empty">胆拖号码无效，胆码数量须小于' + required + '，且胆码+拖码总数须≥' + required + '</div>';
+    return;
+  }
+
+  let html = '';
+  let grandTotalCombos = 0, grandWinCombos = 0, grandTotalPrize = 0;
+  let grandPrizeBreakdown = {};
+
+  recentData.forEach(draw => {
+    const drawSet = new Set(draw.numbers);
+    let periodHtml = '';
+    let periodTotalCombos = 0, periodWinCombos = 0, periodPrize = 0;
+
+    validBets.forEach((bet, idx) => {
+      const danCount = bet.dan.length;
+      const tuoCount = bet.tuo.length;
+      const needFromTuo = required - danCount;
+      const totalCombos = simCombination(tuoCount, needFromTuo);
+      const danHit = bet.dan.filter(n => drawSet.has(n)).length;
+      const tuoHit = bet.tuo.filter(n => drawSet.has(n)).length;
+
+      let betPrize = 0;
+      let betWinCombos = 0;
+      const hitDist = {};
+
+      for (let tj = 0; tj <= Math.min(tuoHit, needFromTuo); tj++) {
+        if (tuoCount - tuoHit < needFromTuo - tj) continue;
+        const combos = simCombination(tuoHit, tj) * simCombination(tuoCount - tuoHit, needFromTuo - tj);
+        if (combos === 0) continue;
+        const totalHits = danHit + tj;
+        const prize = getPrize(type, totalHits);
+        const prizeNum = typeof prize === 'number' ? prize : 0;
+        if (prizeNum > 0) {
+          betPrize += combos * prizeNum;
+          betWinCombos += combos;
+          hitDist[totalHits] = (hitDist[totalHits] || 0) + combos;
+          grandPrizeBreakdown[totalHits] = (grandPrizeBreakdown[totalHits] || 0) + combos * prizeNum;
+        }
+      }
+
+      periodTotalCombos += totalCombos;
+      periodWinCombos += betWinCombos;
+      periodPrize += betPrize;
+      grandTotalCombos += totalCombos;
+      grandWinCombos += betWinCombos;
+      grandTotalPrize += betPrize;
+
+      const danBalls = bet.dan.map(n => {
+        const isHit = drawSet.has(n);
+        return `<span class="verify-num-ball ${isHit ? '' : 'miss'}" style="${isHit ? 'background:var(--gold);' : ''}">${String(n).padStart(2, '0')}</span>`;
+      }).join('');
+      const tuoBalls = bet.tuo.map(n => {
+        const isHit = drawSet.has(n);
+        return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+      }).join('');
+
+      let distHtml = '';
+      Object.entries(hitDist).sort((a, b) => parseInt(b[0]) - parseInt(a[0])).forEach(([hit, combos]) => {
+        const p = getPrize(type, parseInt(hit));
+        distHtml += `<span style="font-size:11px;background:${p > 0 ? 'var(--gold)' : 'var(--bg-light)'};color:${p > 0 ? '#1a1a2e' : 'var(--fg-secondary)'};padding:2px 6px;border-radius:4px;margin-right:4px;">中${hit}个×${combos}注</span>`;
+      });
+
+      periodHtml += `
+        <div style="margin-bottom:8px;padding:8px;background:var(--bg-dark);border-radius:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:13px;font-weight:600;">第${idx + 1}组 (胆${danCount}拖${tuoCount}，${totalCombos}注)</span>
+            <span>胆中<strong style="color:var(--gold);">${danHit}</strong> 拖中<strong style="color:var(--accent);">${tuoHit}</strong> ${betPrize > 0 ? '<span class="verify-hit-tag win">+' + formatPrize(betPrize) + '</span>' : ''}</span>
+          </div>
+          <div style="margin-bottom:2px;font-size:11px;color:var(--gold);">胆码：</div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px;">${danBalls}</div>
+          <div style="margin-bottom:2px;font-size:11px;color:var(--fg-secondary);">拖码：</div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;">${tuoBalls}</div>
+          ${distHtml ? `<div style="margin-top:6px;">${distHtml}</div>` : ''}
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="verify-result-item">
+        <div class="verify-result-period">
+          第 ${draw.period} 期 <span style="font-size:12px;color:var(--fg-secondary);font-weight:normal;">(${periodWinCombos}/${periodTotalCombos}注中奖)</span>
+          ${periodPrize > 0 ? '<span class="verify-hit-tag win">+' + formatPrize(periodPrize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}
+        </div>
+        <div class="verify-result-detail">${periodHtml}</div>
+      </div>
+    `;
+  });
+
+  renderVerifySummary(type, recentData, validBets.length, grandTotalCombos, grandWinCombos, grandTotalPrize, grandPrizeBreakdown, html, true);
+}
+
+// ---------- 验算汇总 ----------
+function renderVerifySummary(type, recentData, betsPerPeriod, grandTotalBets, grandWinBets, grandTotalPrize, grandPrizeBreakdown, detailHtml, isCombo) {
+  let prizeBreakdownHtml = '';
+  if (Object.keys(grandPrizeBreakdown).length > 0) {
+    prizeBreakdownHtml = Object.entries(grandPrizeBreakdown)
+      .sort((a, b) => parseInt(b[0]) - parseInt(a[0]))
+      .map(([hit, amount]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--bg-light);">
+        <span>中${hit}个</span><span style="color:var(--gold);font-weight:700;">${formatPrize(amount)}</span>
+      </div>`).join('');
+  }
+
+  const betAmount = grandTotalBets * 2;
+  const profit = grandTotalPrize - betAmount;
+  const betsLabel = isCombo ? `${betsPerPeriod}组/期，共${grandTotalBets}注` : `${betsPerPeriod} 注/期`;
+  const summary = `
+    <div style="padding:12px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;">
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期数</span><div style="font-size:18px;font-weight:700;color:var(--fg-primary);">${recentData.length} 期</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算注数</span><div style="font-size:18px;font-weight:700;color:var(--fg-primary);">${betsLabel}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">投注金额</span><div style="font-size:18px;font-weight:700;color:var(--fg-primary);">${betAmount} 元</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:18px;font-weight:700;color:var(--gold);">${formatPrize(grandTotalPrize)}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏</span><div style="font-size:18px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
+    </div>
+    ${prizeBreakdownHtml ? `<div style="padding:10px;background:var(--bg-mid);border-radius:8px;margin-bottom:12px;font-size:12px;color:var(--fg-secondary);">${prizeBreakdownHtml}</div>` : ''}
+  `;
+
+  document.getElementById('verifyResult').innerHTML = summary + detailHtml;
+}
+
+function checkWin(type, hitCount) {
+  const rule = PRIZE_RULES[type] || PRIZE_RULES[10];
+  // 检查是否在有奖金的中奖条件中
+  return Object.keys(rule.prizes).map(Number).includes(hitCount);
+}
+
+function showVerifyHelp() {
+  if (verifyMode === 'single') {
+    alert('单式验算说明：\n\n1. 选择"单式"模式\n2. 在文本框中输入号码，每行一注，号码用空格或逗号分隔\n3. 选择玩法类型（选一~选十、复式11~15）\n4. 选择要验算的最近期数\n5. 点击"验算"按钮，系统将对比历史开奖数据\n\n每注号码数量应等于玩法要求（如选十需10个号码）。');
+  } else if (verifyMode === 'multiple') {
+    alert('复式验算说明：\n\n1. 选择"复式"模式\n2. 在文本框中输入号码，每行一组，号码数量可多于玩法要求\n3. 系统自动展开为所有组合进行验算\n4. 例如：选十玩法输入12个号码，展开为C(12,10)=66注\n\n每期显示命中分布和对应奖金。');
+  } else {
+    alert('胆拖验算说明：\n\n1. 选择"胆拖"模式\n2. 在文本框中输入胆拖号码，每行一注\n3. 格式：胆码|拖码，用 | 分隔\n4. 例如：01 05|12 23 34 41 55 62 71 08\n5. 胆码必须出现在每注组合中，拖码与胆码组合\n6. 系统自动展开所有胆拖组合进行验算');
+  }
+}
+
+// ==================== 奖金说明 ====================
+function formatPrize(prize) {
+  if (prize >= 1000000) return (prize/1000000).toFixed(0) + '00万';
+  if (prize >= 10000) return (prize/10000).toFixed(0) + '万';
+  return prize.toFixed(prize % 1 === 0 ? 0 : 2) + '元';
+}
+
+function updatePrizeInfo() {
+  const type = parseInt(document.getElementById('verifyPlayType').value) || 10;
+  const rule = PRIZE_RULES[type] || PRIZE_RULES[10];
+  let html = `<strong style="color:var(--gold);">${rule.name}</strong>玩法奖金规则：<br>`;
+  const entries = Object.entries(rule.prizes);
+  entries.sort((a, b) => {
+    if (a[0] === '0') return 1;
+    if (b[0] === '0') return -1;
+    return parseInt(b[0]) - parseInt(a[0]);
+  });
+  entries.forEach(([hit, prize]) => {
+    const prizeStr = formatPrize(prize);
+    if (hit === '0') {
+      html += `中0个：<span style="color:var(--fg-secondary);">${prizeStr}</span><br>`;
+    } else {
+      html += `中${hit}个：<span style="color:var(--green);font-weight:700;">${prizeStr}</span><br>`;
+    }
+  });
+  document.getElementById('prizeInfo').innerHTML = html;
+}
+
+// textarea 输入监听
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('verifyInput');
+  if (ta) ta.addEventListener('input', updateVerifyCount);
+  initTabDrag();
+  
+  // 页面加载时初始化云开发
+  initCloudBase().then(app => {
+    if (app) {
+      console.log('✅ 云开发初始化完成');
+    } else {
+      console.log('⚠️ 云开发初始化失败，将在使用时重试');
+    }
+  });
+});
+
+// ==================== 模拟选号 ====================
+let simSelected = new Set();
+let simDan = new Set();
+let simSlipBets = [];
+const SIM_PRICE = 2;
+
+function simGetPlayType() {
+  return parseInt(document.getElementById('simPlayType').value) || 10;
+}
+
+function simGetMinPick() {
+  const type = simGetPlayType();
+  return type <= 10 ? type : 10;
+}
+
+function simOnTypeChange() {
+  const type = simGetPlayType();
+  const min = simGetMinPick();
+  const name = document.getElementById('simPlayType').selectedOptions[0].text;
+  document.getElementById('simHint').innerHTML = `<strong>${name}</strong> 至少选${min}个号码`;
+  document.getElementById('simRandomBtn').textContent = `${min}机选`;
+  simRenderGrid();
+}
+
+function simBuildGrid() {
+  const grid = document.getElementById('simGrid');
+  grid.innerHTML = '';
+  for (let n = 1; n <= 80; n++) {
+    const sn = String(n).padStart(2, '0');
+    const cell = document.createElement('div');
+    cell.className = 'sim-cell';
+    cell.innerHTML = `
+      <div class="sim-ball" id="sim-ball-${n}" data-num="${n}">${sn}</div>
+      <span class="sim-count" id="sim-count-${n}">-</span>
+    `;
+    grid.appendChild(cell);
+  }
+  // 事件委托，处理单击/双击
+  let clickTimer = null;
+  grid.addEventListener('click', function(e) {
+    const ball = e.target.closest('.sim-ball');
+    if (!ball) return;
+    const n = parseInt(ball.dataset.num);
+    if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; }
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+      simToggle(n);
+    }, 250);
+  });
+  grid.addEventListener('dblclick', function(e) {
+    const ball = e.target.closest('.sim-ball');
+    if (!ball) return;
+    const n = parseInt(ball.dataset.num);
+    if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+    simToggleDan(n);
+  });
+  simUpdateCounts();
+}
+
+function simUpdateCounts() {
+  if (drawData.length === 0) return;
+  const recent = drawData.slice(0, 30);
+  for (let n = 1; n <= 80; n++) {
+    const count = recent.filter(d => d.numbers.includes(n)).length;
+    const el = document.getElementById(`sim-count-${n}`);
+    if (el) el.textContent = count;
+  }
+}
+
+function simRenderGrid() {
+  document.querySelectorAll('.sim-ball').forEach(b => {
+    const n = parseInt(b.dataset.num);
+    b.classList.remove('selected', 'dan');
+    if (simDan.has(n)) {
+      b.classList.add('dan');
+    } else if (simSelected.has(n)) {
+      b.classList.add('selected');
+    }
+  });
+  const total = simSelected.size + simDan.size;
+  document.getElementById('simSelectedCount').textContent = total;
+}
+
+function simToggle(n) {
+  if (simDan.has(n)) {
+    simDan.delete(n);
+  } else if (simSelected.has(n)) {
+    simSelected.delete(n);
+  } else {
+    simSelected.add(n);
+  }
+  simRenderGrid();
+}
+
+function simToggleDan(n) {
+  if (simDan.has(n)) {
+    simDan.delete(n);
+  } else {
+    simSelected.delete(n);
+    simDan.add(n);
+  }
+  simRenderGrid();
+}
+
+function simClear() {
+  simSelected.clear();
+  simDan.clear();
+  simRenderGrid();
+}
+
+function simRandom() {
+  const min = simGetMinPick();
+  simSelected.clear();
+  simDan.clear();
+  const pool = Array.from({length: 80}, (_, i) => i + 1);
+  shuffle(pool);
+  for (let i = 0; i < min; i++) {
+    simSelected.add(pool[i]);
+  }
+  simRenderGrid();
+}
+
+function simCombination(n, k) {
+  if (k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  let result = 1;
+  for (let i = 0; i < k; i++) {
+    result = result * (n - i) / (i + 1);
+  }
+  return Math.round(result);
+}
+
+function simCalcBets(selected, dan, playType) {
+  const minPick = playType <= 10 ? playType : 10;
+  const allSize = selected.size + dan.size;
+  if (allSize < minPick) return 0;
+
+  if (dan.size === 0) {
+    return playType <= 10 ? 1 : simCombination(allSize, minPick);
+  }
+
+  const danCount = dan.size;
+  if (danCount > minPick) return 0;
+  const tuoCount = allSize - danCount;
+  const needFromTuo = minPick - danCount;
+  if (tuoCount < needFromTuo) return 0;
+  return simCombination(tuoCount, needFromTuo);
+}
+
+function simAddToSlip() {
+  const type = simGetPlayType();
+  const min = simGetMinPick();
+  const allSize = simSelected.size + simDan.size;
+  const name = document.getElementById('simPlayType').selectedOptions[0].text;
+
+  if (allSize < min) {
+    showToast(`${name}至少需要选${min}个号码`);
+    return;
+  }
+
+  const bets = simCalcBets(simSelected, simDan, type);
+  if (bets === 0) {
+    showToast('号码组合无效');
+    return;
+  }
+
+    const entry = {
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      type: type,
+      typeName: name,
+      dan: [...simDan].sort((a, b) => a - b),
+      tuo: [...simSelected].sort((a, b) => a - b),
+      bets: bets,
+      cost: bets * SIM_PRICE,
+      time: new Date().toLocaleString('zh-CN'),
+    };
+
+  simSlipBets.push(entry);
+  simRenderSlip();
+  simClear();
+  showToast(`已加入选号单：${name} ${bets}注 ${entry.cost}元`);
+}
+
+function simAddRandomToSlip() {
+  const type = simGetPlayType();
+  const min = simGetMinPick();
+  const name = document.getElementById('simPlayType').selectedOptions[0].text;
+  const pool = Array.from({length: 80}, (_, i) => i + 1);
+  shuffle(pool);
+  const nums = pool.slice(0, min).sort((a, b) => a - b);
+
+  const bets = type <= 10 ? 1 : simCombination(nums.length, 10);
+
+  const entry = {
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    type: type,
+    typeName: name,
+    dan: [],
+    tuo: nums,
+    bets: bets,
+    cost: bets * SIM_PRICE,
+    time: new Date().toLocaleString('zh-CN'),
+  };
+
+  simSlipBets.push(entry);
+  simRenderSlip();
+  showToast(`已加入选号单：${name} ${bets}注`);
+}
+
+function simRemoveBet(id) {
+  simSlipBets = simSlipBets.filter(b => b.id !== id);
+  simRenderSlip();
+}
+
+function simClearSlip() {
+  if (simSlipBets.length === 0 && savedSimBets.length === 0) return;
+  simSlipBets = [];
+  savedSimBets = [];
+  simRenderSlip();
+  simRenderSaved();
+  showToast('已清空选号单和已保存选号');
+}
+
+function simRenderSlip() {
+  const listEl = document.getElementById('simSlipList');
+  const totalBetsEl = document.getElementById('simTotalBets');
+  const totalCostEl = document.getElementById('simTotalCost');
+  const countEl = document.getElementById('simSlipCount');
+
+  if (simSlipBets.length === 0) {
+    listEl.innerHTML = '<div class="sim-slip-empty">暂未添加选号</div>';
+    totalBetsEl.textContent = '0';
+    totalCostEl.textContent = '0';
+    countEl.textContent = '';
+    return;
+  }
+
+  let totalBets = 0;
+  let totalCost = 0;
+
+  listEl.innerHTML = simSlipBets.map(bet => {
+    totalBets += bet.bets;
+    totalCost += bet.cost;
+
+    const danBalls = bet.dan.map(n =>
+      `<span class="s-ball dan-ball">${String(n).padStart(2,'0')}</span>`
+    ).join('');
+    const tuoBalls = bet.tuo.map(n =>
+      `<span class="s-ball">${String(n).padStart(2,'0')}</span>`
+    ).join('');
+
+    return `
+      <div class="sim-slip-bet">
+        <div class="sim-slip-bet-info">
+          <strong>${bet.typeName}</strong><br>
+          ${bet.bets}注 ${bet.cost}元
+          ${bet.dan.length > 0 ? '<br><span style="color:var(--gold);">胆' + bet.dan.length + '拖' + bet.tuo.length + '</span>' : ''}
+        </div>
+        <div class="sim-slip-bet-nums">
+          ${danBalls}${tuoBalls}
+        </div>
+        <button class="sim-slip-bet-del" onclick="simRemoveBet('${bet.id}')">×</button>
+      </div>
+    `;
+  }).join('');
+
+  totalBetsEl.textContent = totalBets;
+  totalCostEl.textContent = totalCost;
+  countEl.textContent = `(${simSlipBets.length}注)`;
+}
+
+// ==============================================
+// 腾讯云开发 CloudBase 配置
+// ==============================================
+const COLLECTION_NAME = "kl8_bets";
+
+// 云开发初始化 + 匿名登录（必须）
+async function initCloudBase() {
+  try {
+    const CLOUDBASE_ENV = "kl8-save-d9ginl7s5ddaffd74";
+    const app = cloudbase.init({
+      env: CLOUDBASE_ENV,
+      region: 'ap-guangzhou'
+    });
+
+    const auth = app.auth();
+    await auth.signInAnonymously();
+    console.log('✅ 匿名登录成功');
+
+    const db = app.database();
+    if (!db) {
+      console.error('❌ 数据库初始化失败');
+      return null;
+    }
+
+    window.cloudApp = app;
+    return app;
+  } catch (err) {
+    console.error('❌ 云开发初始化/登录失败', err);
+    return null;
+  }
+}
+
+// ==================== 保存区 ====================
+let savedSimBets = [];
+const DOC_ID = "kl8_data";
+
+// 保存到云端 - 保存选号单的号码
+async function saveToCloud() {
+  if (!simSlipBets || simSlipBets.length === 0) {
+    showToast("选号单为空，请先添加选号");
+    return;
+  }
+  
+  try {
+    const app = window.cloudApp || await initCloudBase();
+    if (!app) {
+      showToast("❌ 云开发初始化失败");
+      return;
+    }
+
+    const db = app.database();
+    if (!db) {
+      showToast("❌ 数据库初始化失败");
+      return;
+    }
+
+    await db.collection(COLLECTION_NAME).doc(DOC_ID).set({
+      data: JSON.parse(JSON.stringify(simSlipBets)),
+      updateTime: new Date()
+    }, { merge: true });
+    showToast("✅ 保存到云端成功");
+  } catch (e) {
+    console.error("保存失败", e);
+    showToast("❌ 保存失败：" + e.message);
+  }
+}
+
+// 从云端加载 - 号码加载到选号单
+async function loadFromCloud() {
+  try {
+    const app = window.cloudApp || await initCloudBase();
+    if (!app) {
+      showToast("❌ 云开发初始化失败");
+      return;
+    }
+
+    const db = app.database();
+    if (!db) {
+      showToast("❌ 数据库初始化失败");
+      return;
+    }
+
+    const res = await db.collection(COLLECTION_NAME).doc(DOC_ID).get();
+    console.log("云端加载结果:", res);
+    if (res.data && res.data.data) {
+      simSlipBets = res.data.data;
+      simRenderSlip();
+      showToast(`📥 加载完成：共 ${simSlipBets.length} 条记录`);
+    } else {
+      simSlipBets = [];
+      showToast("⚠️ 云端暂无数据");
+    }
+  } catch (e) {
+    console.error("加载失败", e);
+    simSlipBets = [];
+    showToast("⚠️ 云端暂无数据");
+  }
+}
+
+// 删除云端数据
+async function deleteCloudData() {
+  if (!confirm("确定删除云端保存的数据？")) return;
+  
+  try {
+    const app = window.cloudApp || await initCloudBase();
+    if (!app) {
+      showToast("❌ 云开发初始化失败");
+      return;
+    }
+
+    const db = app.database();
+    if (!db) {
+      showToast("❌ 数据库初始化失败");
+      return;
+    }
+
+    await db.collection(COLLECTION_NAME).doc(DOC_ID).remove();
+    showToast("🗑️ 已清空云端");
+  } catch (e) {
+    console.error("清空失败", e);
+    showToast("❌ 清空失败：" + e.message);
+  }
+}
+
+function simSaveSlip() {
+  if (simSlipBets.length === 0) {
+    showToast('选号单为空');
+    return;
+  }
+  
+  simSlipBets.forEach(bet => {
+    savedSimBets.push({
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      type: bet.type,
+      typeName: bet.typeName,
+      dan: [...bet.dan],
+      tuo: [...bet.tuo],
+      bets: bet.bets,
+      cost: bet.cost,
+      time: bet.time,
+    });
+  });
+  
+  simRenderSaved();
+  saveToCloud();
+}
+
+function simRenderSaved() {
+  const area = document.getElementById('simSavedArea');
+  const listEl = document.getElementById('simSavedList');
+  const countEl = document.getElementById('simSavedCount');
+  const resultEl = document.getElementById('simSavedResult');
+
+  if (savedSimBets.length === 0) {
+    area.style.display = 'none';
+    return;
+  }
+  area.style.display = '';
+  countEl.textContent = `(${savedSimBets.length}注)`;
+
+  let totalBets = 0;
+  let totalCost = 0;
+
+  listEl.innerHTML = savedSimBets.map((bet, idx) => {
+    totalBets += bet.bets;
+    totalCost += bet.cost;
+
+    const danBalls = bet.dan.map(n =>
+      `<span class="s-ball dan-ball">${String(n).padStart(2,'0')}</span>`
+    ).join('');
+    const tuoBalls = bet.tuo.map(n =>
+      `<span class="s-ball">${String(n).padStart(2,'0')}</span>`
+    ).join('');
+
+    return `
+      <div class="sim-slip-bet">
+        <div class="sim-slip-bet-info">
+          <strong>${bet.typeName}</strong><br>
+          ${bet.bets}注 ${bet.cost}元
+          ${bet.dan.length > 0 ? '<br><span style="color:var(--gold);">胆' + bet.dan.length + '拖' + bet.tuo.length + '</span>' : ''}
+        </div>
+        <div class="sim-slip-bet-nums">
+          ${danBalls}${tuoBalls}
+        </div>
+        <button class="sim-slip-bet-del" onclick="simRemoveSaved('${bet.id}')">×</button>
+      </div>
+    `;
+  }).join('');
+
+  listEl.innerHTML += `
+    <div style="padding:8px;text-align:right;font-size:13px;color:var(--fg-secondary);">
+      保存合计：<strong>${totalBets}</strong> 注，<strong>${totalCost}</strong> 元
+    </div>
+  `;
+
+  resultEl.innerHTML = '';
+}
+
+function simRemoveSaved(id) {
+  deleteCloudBet(id);
+}
+
+function simClearSaved() {
+  savedSimBets = [];
+  simRenderSaved();
+  showToast("已清空已保存选号栏");
+}
+
+function simVerifySaved() {
+  if (savedSimBets.length === 0) {
+    showToast('保存区为空');
+    return;
+  }
+  if (drawData.length === 0) {
+    showToast('请先获取开奖数据');
+    return;
+  }
+  // 取最新一期开奖数据
+  const latest = drawData[0];
+  const drawSet = new Set(latest.numbers);
+
+  let totalPrize = 0;
+  let totalWinBets = 0;
+
+  const html = savedSimBets.map((bet, idx) => {
+    const allNums = [...bet.dan, ...bet.tuo].sort((a, b) => a - b);
+    const hits = allNums.filter(n => drawSet.has(n));
+    const hitCount = hits.length;
+    const prize = getPrize(bet.type, hitCount);
+    const isWin = checkWin(bet.type, hitCount);
+    if (isWin) { totalPrize += prize; totalWinBets += bet.bets; }
+
+    const hitBalls = allNums.map(n => {
+      const isHit = drawSet.has(n);
+      return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+    }).join('');
+
+    return `
+      <div class="saved-verify-item">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:13px;font-weight:600;">第${idx + 1}注 ${bet.typeName}</span>
+          <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
+        ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const totalBets = savedSimBets.reduce((s,b)=>s+b.bets,0);
+  const totalCost = totalBets * SIM_PRICE;
+  const profit = totalPrize - totalCost;
+  
+  const summary = `
+    <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${latest.period}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">购买注数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalBets} 注</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏金额</span><div style="font-size:16px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
+    </div>
+  `;
+
+  document.getElementById('simSavedResult').innerHTML = summary + html;
+  showToast('验算完成');
+}
+
+// ==================== 区间选号导入到模拟选号 ====================
+function importPickToSim() {
+  if (pickedGroups.length === 0) {
+    showToast('当前没有选号结果，请先选号');
+    return;
+  }
+  switchTab('sim');
+  // 逐组导入到选号单
+  const selectEl = document.getElementById('simPlayType');
+  let imported = 0;
+  pickedGroups.forEach(group => {
+    simClear();
+    group.forEach(n => simSelected.add(n));
+    const count = group.length;
+    if (count >= 1 && count <= 15) {
+      selectEl.value = String(count);
+      simOnTypeChange();
+    }
+    const type = simGetPlayType();
+    const min = simGetMinPick();
+    if (simSelected.size + simDan.size >= min) {
+      const bets = simCalcBets(simSelected, simDan, type);
+      if (bets > 0) {
+        const name = selectEl.selectedOptions[0].text;
+        const entry = {
+          id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          type: type,
+          typeName: name,
+          dan: [...simDan].sort((a, b) => a - b),
+          tuo: [...simSelected].sort((a, b) => a - b),
+          bets: bets,
+          cost: bets * SIM_PRICE,
+          time: new Date().toLocaleString('zh-CN'),
+        };
+        simSlipBets.push(entry);
+        imported++;
+      }
+    }
+  });
+  simClear();
+  simRenderSlip();
+  if (imported > 0) {
+    showToast(`已导入${imported}组选号到选号单`);
+  } else {
+    showToast('未能导入任何选号，请检查号码数量');
+  }
+}
+
+// ==================== 预测区 ====================
+let predRows = []; // 每组 { id, numbers: Set() }
+let distPredRows = []; // 分布图预测行 { id, numbers: Set() }
+
+function predAddRow() {
+  const id = Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+  predRows.push({ id, numbers: new Set() });
+  predRenderRows();
+}
+
+function predRemoveRow(id) {
+  predRows = predRows.filter(r => r.id !== id);
+  predRenderRows();
+}
+
+function predMoveUp(id) {
+  const idx = predRows.findIndex(r => r.id === id);
+  if (idx <= 0) return;
+  [predRows[idx - 1], predRows[idx]] = [predRows[idx], predRows[idx - 1]];
+  predRenderRows();
+}
+
+function predClearAll() {
+  predRows = [];
+  predRenderRows();
+  document.getElementById('predResult').innerHTML = '';
+  showToast('已清空预测区');
+}
+
+function distAddPredRow() {
+  const id = Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+  distPredRows.push({ id, numbers: new Set() });
+  buildDistribution();
+}
+
+function distRemovePredRow(id) {
+  distPredRows = distPredRows.filter(r => r.id !== id);
+  buildDistribution();
+}
+
+function distTogglePred(num, rowId) {
+  const row = distPredRows.find(r => r.id === rowId);
+  if (!row) return;
+  if (row.numbers.has(num)) {
+    row.numbers.delete(num);
+  } else {
+    row.numbers.add(num);
+  }
+  buildDistribution();
+}
+
+function distClearPred() {
+  distPredRows = [];
+  buildDistribution();
+}
+
+function predToggleBall(rowId, num) {
+  const row = predRows.find(r => r.id === rowId);
+  if (!row) return;
+  if (row.numbers.has(num)) {
+    row.numbers.delete(num);
+  } else {
+    row.numbers.add(num);
+  }
+  predRenderRows();
+}
+
+function predSetFromInput(rowId, text) {
+  const row = predRows.find(r => r.id === rowId);
+  if (!row) return;
+  const nums = text.trim().split(/[\s,，]+/).map(s => parseInt(s)).filter(n => !isNaN(n) && n >= 1 && n <= 80);
+  row.numbers = new Set([...new Set(nums)].sort((a, b) => a - b));
+  predRenderRows();
+}
+
+function predRenderRows() {
+  const container = document.getElementById('predRows');
+  if (predRows.length === 0) {
+    container.innerHTML = '<div style="padding:12px;color:var(--fg-secondary);font-size:13px;text-align:center;">点击上方"添加预测行"开始预测</div>';
+    return;
+  }
+  container.innerHTML = predRows.map((row, idx) => {
+    const nums = [...row.numbers].sort((a, b) => a - b);
+    const inputVal = nums.map(n => String(n).padStart(2, '0')).join(' ');
+    return `
+      <div class="pred-row">
+        <span class="pred-row-label">预测区${idx + 1}</span>
+        <input type="text" class="pred-row-input" value="${inputVal}" placeholder="输入号码如 01 05 12..."
+          onchange="predSetFromInput('${row.id}', this.value)">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+          <button class="btn-icon" onclick="predMoveUp('${row.id}')" style="font-size:11px;padding:4px 8px;" title="上移">↑</button>
+          <button class="btn-icon" onclick="predRemoveRow('${row.id}')" style="font-size:11px;padding:4px 8px;" title="删除">×</button>
+        </div>
+        <div class="pred-grid" style="flex-basis:100%;margin-top:6px;">
+          ${Array.from({length: 80}, (_, i) => i + 1).map(n => {
+            const isSel = row.numbers.has(n);
+            return `<div class="pred-ball ${isSel ? 'selected' : ''}" onclick="predToggleBall('${row.id}', ${n})">${String(n).padStart(2,'0')}</div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function predAnalyze() {
+  if (drawData.length === 0) {
+    showToast('请先获取开奖数据');
+    return;
+  }
+  if (predRows.length === 0) {
+    showToast('请先添加预测行');
+    return;
+  }
+
+  const latest = drawData[0];
+  const drawSet = new Set(latest.numbers);
+  const dataSlice = drawData.slice(0, 30);
+
+  let html = '';
+  predRows.forEach((row, idx) => {
+    const nums = [...row.numbers].sort((a, b) => a - b);
+    if (nums.length === 0) return;
+
+    const hits = nums.filter(n => drawSet.has(n));
+    const hitCount = hits.length;
+
+    // 统计近30期各号码出现次数
+    const freq = {};
+    nums.forEach(n => {
+      freq[n] = dataSlice.filter(d => d.numbers.includes(n)).length;
+    });
+
+    // 统计各区分布
+    const zoneDist = new Array(8).fill(0);
+    nums.forEach(n => {
+      const zi = Math.floor((n - 1) / 10);
+      if (zi >= 0 && zi < 8) zoneDist[zi]++;
+    });
+
+    html += `
+      <div style="margin-bottom:10px;padding:10px;background:var(--bg-dark);border-radius:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <strong>预测区${idx + 1}</strong>
+          <span>选${nums.length}码，最新一期命中 <strong style="color:${hitCount > 0 ? 'var(--gold)' : 'var(--fg-secondary)'};">${hitCount}</strong> 个</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px;">
+          ${nums.map(n => {
+            const isHit = drawSet.has(n);
+            const f = freq[n];
+            return `<span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-size:12px;font-weight:600;${isHit ? 'background:var(--gold);color:#1a1a2e;' : 'background:var(--bg-light);color:var(--fg-secondary);'}">${String(n).padStart(2,'0')}</span>`;
+          }).join('')}
+        </div>
+        ${hits.length > 0 ? `<div style="font-size:12px;color:var(--gold);margin-bottom:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+        <div style="font-size:12px;color:var(--fg-secondary);display:flex;flex-wrap:wrap;gap:8px;">
+          <span>近30期出现次数:</span>
+          ${nums.map(n => `<span>${String(n).padStart(2,'0')}:${freq[n]}次</span>`).join(' ')}
+        </div>
+        <div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">
+          区间分布: ${zoneDist.map((c, i) => `第${i+1}区${c}个`).join('，')}
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById(manager.resultId).innerHTML = html;
+}
+
+// ==================== 初始化 ====================
+buildZoneGrid();
+simBuildGrid();
+updatePrizeInfo();
+predAddRow('main');
+</script>
+</body>
+</html>

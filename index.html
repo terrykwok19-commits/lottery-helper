@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>彩票助手 · 快乐8 · 双色球 · 大乐透</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #999; }
+:root {
+  --bg-dark: #f0f2f5;
+  --bg-mid: #ffffff;
+  --bg-light: #e8eaf0;
+  --fg-primary: #1a1a2e;
+  --fg-secondary: #5a5a7a;
+  --accent: #e94560;
+  --accent-hover: #ff6b81;
+  --green: #2ed573;
+  --gold: #f0a500;
+  --card-bg: #ffffff;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+body {
+  font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+  background: var(--bg-dark);
+  color: var(--fg-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部导航 */
+.top-bar {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  flex-shrink: 0;
+}
+.top-bar h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+.top-bar .sub {
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  margin-top: 2px;
+}
+
+/* 主导航标签 */
+.main-tabs {
+  display: flex;
+  gap: 0;
+  background: #1a1a2e;
+  padding: 0 24px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.main-tab-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.55);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s;
+  white-space: nowrap;
+  position: relative;
+  border-bottom: 3px solid transparent;
+}
+.main-tab-btn:hover {
+  color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.05);
+}
+.main-tab-btn.active {
+  color: #ffffff;
+  border-bottom-color: var(--accent);
+  background: rgba(233,69,96,.15);
+}
+.main-tab-btn .tab-icon {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 16px;
+}
+.main-tab-btn.klb .tab-icon { color: #ff6b81; }
+.main-tab-btn.ssq .tab-icon { color: #e94560; }
+.main-tab-btn.dlt .tab-icon { color: #1e90ff; }
+.main-tab-btn.active .tab-icon { color: #fff; }
+
+/* iframe 容器 */
+.iframe-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.iframe-container iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: none;
+}
+.iframe-container iframe.active {
+  display: block;
+}
+
+/* 加载提示 */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark);
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.loading-overlay.show {
+  opacity: 1;
+}
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--bg-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .top-bar { padding: 10px 16px; }
+  .top-bar h1 { font-size: 17px; }
+  .main-tabs { padding: 0 8px; }
+  .main-tab-btn { padding: 12px 16px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>彩票助手</h1>
+    <div class="sub">快乐8 · 双色球 · 大乐透 — 一站式选号与走势分析</div>
+  </div>
+</div>
+
+<div class="main-tabs">
+  <button class="main-tab-btn klb active" onclick="switchMainTab('klb', this)">
+    <span class="tab-icon">🎱</span>快乐8
+  </button>
+  <button class="main-tab-btn ssq" onclick="switchMainTab('ssq', this)">
+    <span class="tab-icon">🔴</span>双色球
+  </button>
+  <button class="main-tab-btn dlt" onclick="switchMainTab('dlt', this)">
+    <span class="tab-icon">🔵</span>大乐透
+  </button>
+</div>
+
+<div class="iframe-container" id="iframeContainer">
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+  <iframe id="iframeKlb" src="Klb.html" title="快乐8选号助手"></iframe>
+  <iframe id="iframeSsq" src="Ssq.html" title="双色球开奖分布图"></iframe>
+  <iframe id="iframeDlt" src="Dlt.html" title="大乐透开奖分布图"></iframe>
+</div>
+
+<script>
+(function() {
+  var currentTab = 'klb';
+  var iframes = {
+    klb: document.getElementById('iframeKlb'),
+    ssq: document.getElementById('iframeSsq'),
+    dlt: document.getElementById('iframeDlt')
+  };
+  var loadingOverlay = document.getElementById('loadingOverlay');
+  var tabButtons = document.querySelectorAll('.main-tab-btn');
+
+  // 初始化：显示快乐8
+  iframes.klb.classList.add('active');
+
+  // 监听所有 iframe 加载完成
+  Object.keys(iframes).forEach(function(key) {
+    iframes[key].addEventListener('load', function() {
+      loadingOverlay.classList.remove('show');
+    });
+  });
+
+  window.switchMainTab = function(tab, btn) {
+    if (currentTab === tab) return;
+
+    // 切换按钮状态
+    tabButtons.forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+
+    // 隐藏当前 iframe
+    iframes[currentTab].classList.remove('active');
+
+    // 显示目标 iframe
+    currentTab = tab;
+    iframes[tab].classList.add('active');
+
+    // 显示加载提示
+    loadingOverlay.classList.add('show');
+    // 如果 iframe 已加载完成，立即隐藏加载提示
+    setTimeout(function() {
+      loadingOverlay.classList.remove('show');
+    }, 500);
+  };
+
+  // 键盘快捷键切换
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key >= '1' && e.key <= '3') {
+      e.preventDefault();
+      var idx = parseInt(e.key) - 1;
+      var tabs = ['klb', 'ssq', 'dlt'];
+      var btns = document.querySelectorAll('.main-tab-btn');
+      switchMainTab(tabs[idx], btns[idx]);
+    }
+  });
+
+  // 响应父窗口大小变化
+  window.addEventListener('resize', function() {
+    Object.keys(iframes).forEach(function(key) {
+      var iframe = iframes[key];
+      if (iframe.contentWindow) {
+        // 触发子页面的 resize 事件
+        iframe.contentWindow.dispatchEvent(new Event('resize'));
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
