@@ -498,6 +498,33 @@ body {
 .sim-hint { font-size: 13px; color: var(--fg-secondary); }
 .sim-hint strong { color: var(--accent); }
 .sim-dan-hint { font-size: 12px; color: var(--gold); margin-left: auto; }
+.sim-batch-row {
+  display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;
+}
+.sim-batch-group {
+  display: flex; align-items: center; gap: 6px;
+}
+.sim-batch-label {
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.sim-batch-label.dan-label { color: var(--gold); }
+.sim-batch-label.exclude-label { color: #999; }
+.sim-batch-input {
+  width: 280px; padding: 6px 10px; border: 2px solid var(--bg-light);
+  border-radius: 6px; font-size: 13px; font-family: Consolas, 'Courier New', monospace;
+  background: var(--card-bg); color: var(--fg-primary); outline: none;
+  transition: border-color .2s;
+}
+.sim-batch-input:focus { border-color: var(--accent); }
+.sim-batch-input.dan-input:focus { border-color: var(--gold); }
+.sim-batch-apply {
+  border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px;
+  font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.sim-batch-apply.dan-apply { background: var(--gold); color: #1a1a2e; }
+.sim-batch-apply.dan-apply:hover { opacity: .85; }
+.sim-batch-apply.exclude-apply { background: #d0d0d0; color: #555; }
+.sim-batch-apply.exclude-apply:hover { opacity: .85; }
 .sim-grid-wrap {
   background: var(--card-bg); border-radius: var(--radius-md); padding: 16px;
   box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow-x: auto;
@@ -576,6 +603,8 @@ body {
 .sim-selected-info strong { color: var(--accent); font-size: 16px; }
 
 @media (max-width: 600px) {
+  .sim-batch-row { flex-direction: column; align-items: stretch; }
+  .sim-batch-input { width: 100%; }
   .sim-grid { grid-template-columns: repeat(8, 1fr); gap: 4px; min-width: 300px; }
   .sim-ball { width: 32px; height: 32px; font-size: 12px; }
   .sim-slip-footer { flex-direction: column; align-items: flex-start; }
@@ -1425,6 +1454,19 @@ body {
       <span class="sim-selected-info">已选 <strong id="simSelectedCount">0</strong> 个号码</span>
       <span class="sim-dan-hint">双击设胆 | 右键排除</span>
       <span class="sim-exclude-hint" id="simExcludeHint">已排除 0 个</span>
+    </div>
+
+    <div class="sim-batch-row">
+      <div class="sim-batch-group">
+        <span class="sim-batch-label dan-label">胆码：</span>
+        <input type="text" class="sim-batch-input dan-input" id="simDanInput" placeholder="如：01,05,12 或 01 05 12" onkeydown="if(event.key==='Enter')simApplyDan()">
+        <button class="sim-batch-apply dan-apply" onclick="simApplyDan()">应用</button>
+      </div>
+      <div class="sim-batch-group">
+        <span class="sim-batch-label exclude-label">排除号：</span>
+        <input type="text" class="sim-batch-input" id="simExcludeInput" placeholder="如：04,08,15 或 04 08 15" onkeydown="if(event.key==='Enter')simApplyExclude()">
+        <button class="sim-batch-apply exclude-apply" onclick="simApplyExclude()">应用</button>
+      </div>
     </div>
 
     <div class="sim-grid-wrap">
@@ -3731,6 +3773,7 @@ function simToggle(n) {
     simSelected.add(n);
   }
   simRenderGrid();
+  simSyncInputs();
 }
 
 function simToggleDan(n) {
@@ -3742,6 +3785,7 @@ function simToggleDan(n) {
     simDan.add(n);
   }
   simRenderGrid();
+  simSyncInputs();
 }
 
 function simToggleExclude(n) {
@@ -3753,12 +3797,69 @@ function simToggleExclude(n) {
     simExcluded.add(n);
   }
   simRenderGrid();
+  simSyncInputs();
+}
+
+function simParseInput(val) {
+  if (!val.trim()) return [];
+  const parts = val.split(/[,，\s]+/);
+  const nums = [];
+  for (const p of parts) {
+    const n = parseInt(p);
+    if (n >= 1 && n <= 80 && !nums.includes(n)) {
+      nums.push(n);
+    }
+  }
+  return nums;
+}
+
+function simApplyDan() {
+  const input = document.getElementById('simDanInput');
+  const nums = simParseInput(input.value);
+  if (nums.length === 0) {
+    showToast('请输入有效的胆码号码（1-80）');
+    return;
+  }
+  simDan.clear();
+  nums.forEach(n => {
+    simSelected.delete(n);
+    simExcluded.delete(n);
+    simDan.add(n);
+  });
+  simRenderGrid();
+  showToast(`已设置 ${nums.length} 个胆码`);
+}
+
+function simApplyExclude() {
+  const input = document.getElementById('simExcludeInput');
+  const nums = simParseInput(input.value);
+  if (nums.length === 0) {
+    showToast('请输入有效的排除号码（1-80）');
+    return;
+  }
+  nums.forEach(n => {
+    simSelected.delete(n);
+    simDan.delete(n);
+    simExcluded.add(n);
+  });
+  simRenderGrid();
+  showToast(`已排除 ${nums.length} 个号码`);
+  simSyncInputs();
+}
+
+function simSyncInputs() {
+  const danNums = [...simDan].sort((a, b) => a - b).map(n => String(n).padStart(2, '0'));
+  document.getElementById('simDanInput').value = danNums.join(' ');
+  const exclNums = [...simExcluded].sort((a, b) => a - b).map(n => String(n).padStart(2, '0'));
+  document.getElementById('simExcludeInput').value = exclNums.join(' ');
 }
 
 function simClear() {
   simSelected.clear();
   simDan.clear();
   simExcluded.clear();
+  document.getElementById('simDanInput').value = '';
+  document.getElementById('simExcludeInput').value = '';
   simRenderGrid();
 }
 
