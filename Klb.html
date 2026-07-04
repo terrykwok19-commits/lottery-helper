@@ -521,7 +521,12 @@ body {
   background: var(--gold); color: #1a1a2e; border-color: transparent;
   transform: scale(1.1); box-shadow: 0 3px 10px rgba(240,165,0,.5);
 }
+.sim-ball.excluded {
+  background: #d0d0d0; color: #aaa; text-decoration: line-through;
+  opacity: 0.5; cursor: not-allowed; transform: scale(0.9);
+}
 .sim-count { font-size: 10px; color: var(--fg-secondary); }
+.sim-exclude-hint { font-size: 12px; color: #999; margin-left: auto; }
 .sim-actions {
   display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
 }
@@ -1343,8 +1348,6 @@ body {
   .pred-grid { grid-template-columns: repeat(8, 1fr); }
 }
 </style>
-<!-- 引入腾讯云开发 SDK -->
-<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.28.6/cloudbase.full.js"></script>
 </head>
 <body>
 
@@ -1420,7 +1423,8 @@ body {
       </select>
       <span class="sim-hint" id="simHint">选十至少选10个号码</span>
       <span class="sim-selected-info">已选 <strong id="simSelectedCount">0</strong> 个号码</span>
-      <span class="sim-dan-hint">双击号码设胆</span>
+      <span class="sim-dan-hint">双击设胆 | 右键排除</span>
+      <span class="sim-exclude-hint" id="simExcludeHint">已排除 0 个</span>
     </div>
 
     <div class="sim-grid-wrap">
@@ -1431,9 +1435,6 @@ body {
       <button class="btn-clear" onclick="simClear()">清空</button>
       <button class="btn-random" onclick="simRandom()" id="simRandomBtn">10机选</button>
       <button class="btn-generate" onclick="simAddToSlip()">加入选号单</button>
-      <button class="btn-icon" onclick="saveToCloud()">☁️ 保存到云端</button>
-      <button class="btn-icon" onclick="loadFromCloud()">📥 加载云端</button>
-      <button class="btn-icon" onclick="deleteCloudData()" style="background:#ffebee;color:#c62828;">🗑️ 删除云端</button>
     </div>
 
     <div class="sim-slip">
@@ -1450,9 +1451,11 @@ body {
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn-random" onclick="simAddRandomToSlip()" style="padding:8px 18px;font-size:13px;">机选一注加入选号单</button>
+          <button class="btn-generate" onclick="simVerifySlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#1e90ff,#0d47a1);">验证中奖</button>
           <button class="btn-generate" onclick="simSaveSlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">保存选号</button>
         </div>
       </div>
+      <div id="simSlipResult" style="margin-top:12px;"></div>
     </div>
 
     <!-- 保存区 -->
@@ -3620,20 +3623,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const ta = document.getElementById('verifyInput');
   if (ta) ta.addEventListener('input', updateVerifyCount);
   initTabDrag();
-  
-  // 页面加载时初始化云开发
-  initCloudBase().then(app => {
-    if (app) {
-      console.log('✅ 云开发初始化完成');
-    } else {
-      console.log('⚠️ 云开发初始化失败，将在使用时重试');
-    }
-  });
 });
 
 // ==================== 模拟选号 ====================
 let simSelected = new Set();
 let simDan = new Set();
+let simExcluded = new Set();
 let simSlipBets = [];
 const SIM_PRICE = 2;
 
@@ -3687,6 +3682,13 @@ function simBuildGrid() {
     if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
     simToggleDan(n);
   });
+  grid.addEventListener('contextmenu', function(e) {
+    const ball = e.target.closest('.sim-ball');
+    if (!ball) return;
+    e.preventDefault();
+    const n = parseInt(ball.dataset.num);
+    simToggleExclude(n);
+  });
   simUpdateCounts();
 }
 
@@ -3703,8 +3705,10 @@ function simUpdateCounts() {
 function simRenderGrid() {
   document.querySelectorAll('.sim-ball').forEach(b => {
     const n = parseInt(b.dataset.num);
-    b.classList.remove('selected', 'dan');
-    if (simDan.has(n)) {
+    b.classList.remove('selected', 'dan', 'excluded');
+    if (simExcluded.has(n)) {
+      b.classList.add('excluded');
+    } else if (simDan.has(n)) {
       b.classList.add('dan');
     } else if (simSelected.has(n)) {
       b.classList.add('selected');
@@ -3712,10 +3716,14 @@ function simRenderGrid() {
   });
   const total = simSelected.size + simDan.size;
   document.getElementById('simSelectedCount').textContent = total;
+  document.getElementById('simExcludeHint').textContent = simExcluded.size > 0 ? `已排除 ${simExcluded.size} 个` : '已排除 0 个';
 }
 
 function simToggle(n) {
-  if (simDan.has(n)) {
+  if (simExcluded.has(n)) {
+    simExcluded.delete(n);
+    simSelected.add(n);
+  } else if (simDan.has(n)) {
     simDan.delete(n);
   } else if (simSelected.has(n)) {
     simSelected.delete(n);
@@ -3730,7 +3738,19 @@ function simToggleDan(n) {
     simDan.delete(n);
   } else {
     simSelected.delete(n);
+    simExcluded.delete(n);
     simDan.add(n);
+  }
+  simRenderGrid();
+}
+
+function simToggleExclude(n) {
+  if (simExcluded.has(n)) {
+    simExcluded.delete(n);
+  } else {
+    simSelected.delete(n);
+    simDan.delete(n);
+    simExcluded.add(n);
   }
   simRenderGrid();
 }
@@ -3738,16 +3758,22 @@ function simToggleDan(n) {
 function simClear() {
   simSelected.clear();
   simDan.clear();
+  simExcluded.clear();
   simRenderGrid();
 }
 
 function simRandom() {
   const min = simGetMinPick();
+  const danCount = simDan.size;
+  if (danCount > min) {
+    showToast(`胆码(${danCount}个)不能超过选号数量(${min}个)`);
+    return;
+  }
   simSelected.clear();
-  simDan.clear();
-  const pool = Array.from({length: 80}, (_, i) => i + 1);
+  const pool = Array.from({length: 80}, (_, i) => i + 1).filter(n => !simDan.has(n) && !simExcluded.has(n));
   shuffle(pool);
-  for (let i = 0; i < min; i++) {
+  const need = min - danCount;
+  for (let i = 0; i < need && i < pool.length; i++) {
     simSelected.add(pool[i]);
   }
   simRenderGrid();
@@ -3810,7 +3836,8 @@ function simAddToSlip() {
 
   simSlipBets.push(entry);
   simRenderSlip();
-  simClear();
+  simSelected.clear();
+  simRenderGrid();
   showToast(`已加入选号单：${name} ${bets}注 ${entry.cost}元`);
 }
 
@@ -3818,18 +3845,28 @@ function simAddRandomToSlip() {
   const type = simGetPlayType();
   const min = simGetMinPick();
   const name = document.getElementById('simPlayType').selectedOptions[0].text;
-  const pool = Array.from({length: 80}, (_, i) => i + 1);
-  shuffle(pool);
-  const nums = pool.slice(0, min).sort((a, b) => a - b);
 
-  const bets = type <= 10 ? 1 : simCombination(nums.length, 10);
+  const danCount = simDan.size;
+  if (danCount > min) {
+    showToast(`胆码(${danCount}个)不能超过选号数量(${min}个)`);
+    return;
+  }
+
+  const danNums = [...simDan].sort((a, b) => a - b);
+  const pool = Array.from({length: 80}, (_, i) => i + 1).filter(n => !simDan.has(n) && !simExcluded.has(n));
+  shuffle(pool);
+  const need = min - danCount;
+  const tuoNums = pool.slice(0, need).sort((a, b) => a - b);
+
+  const allNums = [...danNums, ...tuoNums];
+  const bets = type <= 10 ? 1 : simCombination(allNums.length, 10);
 
   const entry = {
     id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
     type: type,
     typeName: name,
-    dan: [],
-    tuo: nums,
+    dan: danNums,
+    tuo: tuoNums,
     bets: bets,
     cost: bets * SIM_PRICE,
     time: new Date().toLocaleString('zh-CN'),
@@ -3851,7 +3888,70 @@ function simClearSlip() {
   savedSimBets = [];
   simRenderSlip();
   simRenderSaved();
+  document.getElementById('simSlipResult').innerHTML = '';
   showToast('已清空选号单和已保存选号');
+}
+
+function simClearSlipResult() {
+  document.getElementById('simSlipResult').innerHTML = '';
+}
+
+function simVerifySlip() {
+  if (simSlipBets.length === 0) {
+    showToast('选号单为空，请先添加选号');
+    return;
+  }
+  if (drawData.length === 0) {
+    showToast('请先获取开奖数据（在走势分析页面）');
+    return;
+  }
+  const latest = drawData[0];
+  const drawSet = new Set(latest.numbers);
+
+  let totalPrize = 0;
+  let totalWinBets = 0;
+
+  const html = simSlipBets.map((bet, idx) => {
+    const allNums = [...bet.dan, ...bet.tuo].sort((a, b) => a - b);
+    const hits = allNums.filter(n => drawSet.has(n));
+    const hitCount = hits.length;
+    const prize = getPrize(bet.type, hitCount);
+    const isWin = checkWin(bet.type, hitCount);
+    if (isWin) { totalPrize += prize; totalWinBets += bet.bets; }
+
+    const hitBalls = allNums.map(n => {
+      const isHit = drawSet.has(n);
+      return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+    }).join('');
+
+    return `
+      <div class="saved-verify-item">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:13px;font-weight:600;">第${idx + 1}注 ${bet.typeName}</span>
+          <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
+        ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const totalBets = simSlipBets.reduce((s, b) => s + b.bets, 0);
+  const totalCost = totalBets * SIM_PRICE;
+  const profit = totalPrize - totalCost;
+
+  const summary = `
+    <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${latest.period}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">购买注数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalBets} 注</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏金额</span><div style="font-size:16px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
+    </div>
+  `;
+
+  document.getElementById('simSlipResult').innerHTML = summary + html;
+  showToast('验证完成');
 }
 
 function simRenderSlip() {
@@ -3902,129 +4002,8 @@ function simRenderSlip() {
   countEl.textContent = `(${simSlipBets.length}注)`;
 }
 
-// ==============================================
-// 腾讯云开发 CloudBase 配置
-// ==============================================
-const COLLECTION_NAME = "kl8_bets";
-
-// 云开发初始化 + 匿名登录（必须）
-async function initCloudBase() {
-  try {
-    const CLOUDBASE_ENV = "kl8-save-d9ginl7s5ddaffd74";
-    const app = cloudbase.init({
-      env: CLOUDBASE_ENV,
-      region: 'ap-guangzhou'
-    });
-
-    const auth = app.auth();
-    await auth.signInAnonymously();
-    console.log('✅ 匿名登录成功');
-
-    const db = app.database();
-    if (!db) {
-      console.error('❌ 数据库初始化失败');
-      return null;
-    }
-
-    window.cloudApp = app;
-    return app;
-  } catch (err) {
-    console.error('❌ 云开发初始化/登录失败', err);
-    return null;
-  }
-}
-
 // ==================== 保存区 ====================
 let savedSimBets = [];
-const DOC_ID = "kl8_data";
-
-// 保存到云端 - 保存选号单的号码
-async function saveToCloud() {
-  if (!simSlipBets || simSlipBets.length === 0) {
-    showToast("选号单为空，请先添加选号");
-    return;
-  }
-  
-  try {
-    const app = window.cloudApp || await initCloudBase();
-    if (!app) {
-      showToast("❌ 云开发初始化失败");
-      return;
-    }
-
-    const db = app.database();
-    if (!db) {
-      showToast("❌ 数据库初始化失败");
-      return;
-    }
-
-    await db.collection(COLLECTION_NAME).doc(DOC_ID).set({
-      data: JSON.parse(JSON.stringify(simSlipBets)),
-      updateTime: new Date()
-    }, { merge: true });
-    showToast("✅ 保存到云端成功");
-  } catch (e) {
-    console.error("保存失败", e);
-    showToast("❌ 保存失败：" + e.message);
-  }
-}
-
-// 从云端加载 - 号码加载到选号单
-async function loadFromCloud() {
-  try {
-    const app = window.cloudApp || await initCloudBase();
-    if (!app) {
-      showToast("❌ 云开发初始化失败");
-      return;
-    }
-
-    const db = app.database();
-    if (!db) {
-      showToast("❌ 数据库初始化失败");
-      return;
-    }
-
-    const res = await db.collection(COLLECTION_NAME).doc(DOC_ID).get();
-    console.log("云端加载结果:", res);
-    if (res.data && res.data.data) {
-      simSlipBets = res.data.data;
-      simRenderSlip();
-      showToast(`📥 加载完成：共 ${simSlipBets.length} 条记录`);
-    } else {
-      simSlipBets = [];
-      showToast("⚠️ 云端暂无数据");
-    }
-  } catch (e) {
-    console.error("加载失败", e);
-    simSlipBets = [];
-    showToast("⚠️ 云端暂无数据");
-  }
-}
-
-// 删除云端数据
-async function deleteCloudData() {
-  if (!confirm("确定删除云端保存的数据？")) return;
-  
-  try {
-    const app = window.cloudApp || await initCloudBase();
-    if (!app) {
-      showToast("❌ 云开发初始化失败");
-      return;
-    }
-
-    const db = app.database();
-    if (!db) {
-      showToast("❌ 数据库初始化失败");
-      return;
-    }
-
-    await db.collection(COLLECTION_NAME).doc(DOC_ID).remove();
-    showToast("🗑️ 已清空云端");
-  } catch (e) {
-    console.error("清空失败", e);
-    showToast("❌ 清空失败：" + e.message);
-  }
-}
 
 function simSaveSlip() {
   if (simSlipBets.length === 0) {
@@ -4046,7 +4025,7 @@ function simSaveSlip() {
   });
   
   simRenderSaved();
-  saveToCloud();
+  showToast('已保存到本地');
 }
 
 function simRenderSaved() {
@@ -4101,7 +4080,8 @@ function simRenderSaved() {
 }
 
 function simRemoveSaved(id) {
-  deleteCloudBet(id);
+  savedSimBets = savedSimBets.filter(b => b.id !== id);
+  simRenderSaved();
 }
 
 function simClearSaved() {
