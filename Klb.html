@@ -1407,10 +1407,27 @@ body {
   <div id="pickPanel" class="tab-panel active">
     <div style="display:flex;gap:8px;margin-bottom:12px;">
       <button id="zoneMode8" class="btn-mode active" onclick="switchZoneMode(8)">8区选号</button>
-      <button id="zoneMode10" class="btn-mode" onclick="switchZoneMode(10)">10区选号</button>
+      <button id="zoneMode4" class="btn-mode" onclick="switchZoneMode(4)">4区选号</button>
       <button id="zoneModeMix" class="btn-mode" onclick="switchZoneMode('mix')">混合选号</button>
     </div>
     <div class="zone-grid" id="zoneGrid"></div>
+
+    <div class="sim-batch-row">
+      <div class="sim-batch-group">
+        <span class="sim-batch-label dan-label">批量选号：</span>
+        <input type="text" class="sim-batch-input dan-input" id="pickBatchInput" placeholder="如：01,05,12 或 01 05 12" onkeydown="if(event.key==='Enter')pickApplyBatch()">
+        <button class="sim-batch-apply dan-apply" onclick="pickApplyBatch()">添加</button>
+      </div>
+      <div class="sim-batch-group">
+        <span class="sim-batch-label dan-label">批量胆码：</span>
+        <input type="text" class="sim-batch-input dan-input" id="pickDanInput" placeholder="如：01,05,12 或 01 05 12" onkeydown="if(event.key==='Enter')pickApplyDan()">
+        <button class="sim-batch-apply dan-apply" onclick="pickApplyDan()">应用</button>
+      </div>
+      <div class="sim-batch-group">
+        <span class="sim-batch-label exclude-label">清空胆码：</span>
+        <button class="sim-batch-apply exclude-apply" onclick="pickClearDan()">清空</button>
+      </div>
+    </div>
 
     <div class="action-bar">
       <button class="btn-generate" onclick="generateNumbers()">智能选号</button>
@@ -1498,7 +1515,7 @@ body {
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn-random" onclick="simAddRandomToSlip()" style="padding:8px 18px;font-size:13px;">机选一注加入选号单</button>
           <button class="btn-generate" onclick="simVerifySlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#1e90ff,#0d47a1);">验证中奖</button>
-          <button class="btn-generate" onclick="simSaveSlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">保存选号</button>
+          <button class="btn-generate" onclick="simCopySlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">复制号码</button>
         </div>
       </div>
       <div id="simSlipResult" style="margin-top:12px;"></div>
@@ -1697,7 +1714,15 @@ const ZONES_MIX = [
 ];
 
 // ==================== 状态 ====================
-let zoneMode = 8; // 8区、10区或'mix'混合模式
+// 4区选号配置
+const ZONES4_PICK = [
+  { id: 1, label: '第一区', range: [1, 20],  color: '#e94560' },
+  { id: 2, label: '第二区', range: [21, 40], color: '#ff6348' },
+  { id: 3, label: '第三区', range: [41, 60], color: '#ffa502' },
+  { id: 4, label: '第四区', range: [61, 80], color: '#2ed573' },
+];
+
+let zoneMode = 8; // 8区、4区或'mix'混合模式
 let zoneCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // 每区选几个
 let manualSelected = new Set();              // 手动点击选中的号码
 let fixedNumbers = new Set();                // 双击固定的号码
@@ -1709,7 +1734,7 @@ function buildZoneGrid() {
   const grid = document.getElementById('zoneGrid');
   grid.innerHTML = '';
   
-  const zones = zoneMode === 10 ? ZONES10 : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
   
   zones.forEach((z, idx) => {
     const card = document.createElement('div');
@@ -1744,10 +1769,10 @@ function switchZoneMode(mode) {
   zoneMode = mode;
   
   document.getElementById('zoneMode8').classList.toggle('active', mode === 8);
-  document.getElementById('zoneMode10').classList.toggle('active', mode === 10);
+  document.getElementById('zoneMode4').classList.toggle('active', mode === 4);
   document.getElementById('zoneModeMix').classList.toggle('active', mode === 'mix');
   
-  const zones = mode === 10 ? ZONES10 : mode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = mode === 4 ? ZONES4_PICK : mode === 'mix' ? ZONES_MIX : ZONES;
   zoneCounts = new Array(zones.length).fill(0);
   
   buildZoneGrid();
@@ -1790,11 +1815,75 @@ function toggleFixed(n) {
   }
 }
 
+// 解析输入字符串中的号码（支持逗号、空格、中文逗号分隔）
+function parseNumbers(input) {
+  if (!input || !input.trim()) return [];
+  const nums = [];
+  const parts = input.replace(/[，]/g, ',').split(/[,，\s]+/);
+  parts.forEach(p => {
+    const n = parseInt(p);
+    if (n >= 1 && n <= 80) nums.push(n);
+  });
+  return [...new Set(nums)];
+}
+
+// 批量添加选号
+function pickApplyBatch() {
+  const input = document.getElementById('pickBatchInput').value;
+  const nums = parseNumbers(input);
+  if (nums.length === 0) {
+    showToast('请输入有效号码（1-80）');
+    return;
+  }
+  nums.forEach(n => {
+    manualSelected.add(n);
+    const ball = document.getElementById(`ball-${n}`);
+    if (ball) ball.classList.add('selected');
+  });
+  document.getElementById('pickBatchInput').value = '';
+  updateTotalPicked();
+  showToast(`已添加 ${nums.length} 个选号`);
+}
+
+// 批量添加胆码（固定号码）
+function pickApplyDan() {
+  const input = document.getElementById('pickDanInput').value;
+  const nums = parseNumbers(input);
+  if (nums.length === 0) {
+    showToast('请输入有效号码（1-80）');
+    return;
+  }
+  nums.forEach(n => {
+    fixedNumbers.add(n);
+    const ball = document.getElementById(`ball-${n}`);
+    if (ball) {
+      ball.classList.add('fixed');
+      ball.classList.remove('selected');
+      manualSelected.delete(n);
+    }
+  });
+  document.getElementById('pickDanInput').value = '';
+  updateTotalPicked();
+  showToast(`已设置 ${nums.length} 个胆码`);
+}
+
+// 清空胆码
+function pickClearDan() {
+  const count = fixedNumbers.size;
+  fixedNumbers.forEach(n => {
+    const ball = document.getElementById(`ball-${n}`);
+    if (ball) ball.classList.remove('fixed');
+  });
+  fixedNumbers.clear();
+  updateTotalPicked();
+  showToast(`已清空 ${count} 个胆码`);
+}
+
 // ==================== 选号逻辑 ====================
 function generateNumbers() {
   const result = new Set();
   
-  const zones = zoneMode === 10 ? ZONES10 : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
 
   // 按区选号：固定号码优先，然后自选，不足随机补
   zones.forEach((z, idx) => {
@@ -1853,7 +1942,7 @@ function batchGenerate(count) {
     return;
   }
   
-  const zones = zoneMode === 10 ? ZONES10 : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
   
   for (let i = 0; i < count; i++) {
     const result = new Set();
@@ -1903,7 +1992,8 @@ function randomAll() {
 }
 
 function clearAll() {
-  zoneCounts = [0, 0, 0, 0, 0, 0, 0, 0];
+  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  zoneCounts = new Array(zones.length).fill(0);
   zoneCounts.forEach((_, i) => {
     document.getElementById(`count-${i}`).textContent = 0;
   });
@@ -4036,6 +4126,29 @@ function simClearSlip() {
 
 function simClearSlipResult() {
   document.getElementById('simSlipResult').innerHTML = '';
+}
+
+function simCopySlip() {
+  if (simSlipBets.length === 0) {
+    showToast('选号单为空，请先添加选号');
+    return;
+  }
+  const lines = simSlipBets.map(bet => {
+    const allNums = [...bet.dan, ...bet.tuo].sort((a, b) => a - b);
+    return allNums.map(n => String(n).padStart(2, '0')).join(' ');
+  });
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`已复制 ${simSlipBets.length} 注号码`);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(`已复制 ${simSlipBets.length} 注号码`);
+  });
 }
 
 function simVerifySlip() {
