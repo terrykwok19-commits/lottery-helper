@@ -528,6 +528,8 @@ body {
 .sim-grid-wrap {
   background: var(--card-bg); border-radius: var(--radius-md); padding: 16px;
   box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow-x: auto;
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+  touch-action: manipulation;
 }
 .sim-grid {
   display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; min-width: 420px;
@@ -538,6 +540,7 @@ body {
   justify-content: center; font-size: 14px; font-weight: 700; cursor: pointer;
   transition: all .2s; background: var(--bg-dark); color: var(--fg-primary);
   border: 2px solid transparent; user-select: none;
+  -webkit-touch-callout: none;
 }
 .sim-ball:hover { border-color: var(--accent); transform: scale(1.08); }
 .sim-ball.selected {
@@ -604,7 +607,8 @@ body {
 
 @media (max-width: 600px) {
   .sim-batch-row { flex-direction: column; align-items: stretch; }
-  .sim-batch-input { width: 100%; }
+  .sim-batch-group { flex-wrap: wrap; }
+  .sim-batch-input { width: auto; flex: 1; min-width: 0; font-size: 16px; }
   .sim-grid { grid-template-columns: repeat(8, 1fr); gap: 4px; min-width: 300px; }
   .sim-ball { width: 32px; height: 32px; font-size: 12px; }
   .sim-slip-footer { flex-direction: column; align-items: flex-start; }
@@ -3705,12 +3709,15 @@ function simBuildGrid() {
     `;
     grid.appendChild(cell);
   }
-  // 事件委托，处理单击/双击
   let clickTimer = null;
+  let longPressTimer = null;
+  let longPressTriggered = false;
+  let touchStartX = 0, touchStartY = 0;
   grid.addEventListener('click', function(e) {
     const ball = e.target.closest('.sim-ball');
     if (!ball) return;
     const n = parseInt(ball.dataset.num);
+    if (longPressTriggered) { longPressTriggered = false; return; }
     if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; }
     clickTimer = setTimeout(() => {
       clickTimer = null;
@@ -3730,6 +3737,40 @@ function simBuildGrid() {
     e.preventDefault();
     const n = parseInt(ball.dataset.num);
     simToggleExclude(n);
+  });
+  grid.addEventListener('touchstart', function(e) {
+    const ball = e.target.closest('.sim-ball');
+    if (!ball) return;
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    longPressTriggered = false;
+    const n = parseInt(ball.dataset.num);
+    longPressTimer = setTimeout(() => {
+      longPressTriggered = true;
+      simToggleExclude(n);
+      if (navigator.vibrate) navigator.vibrate(15);
+    }, 500);
+  }, { passive: false });
+  grid.addEventListener('touchmove', function(e) {
+    if (!longPressTimer) return;
+    const touch = e.touches[0];
+    if (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  }, { passive: false });
+  grid.addEventListener('touchend', function(e) {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  });
+  grid.addEventListener('touchcancel', function(e) {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
   });
   simUpdateCounts();
 }
