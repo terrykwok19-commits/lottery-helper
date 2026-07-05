@@ -1452,11 +1452,13 @@ body {
     <div id="pickResultArea" class="result-area" style="display:none;">
       <div style="margin-bottom:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <button class="btn-icon" onclick="copyCurrentPick()">📋 复制号码</button>
+        <button class="btn-generate" onclick="verifyPickResults()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#ff6b6b,#ee5a6f);">🎯 验证中奖</button>
         <button class="btn-generate" onclick="importPickToSim()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">导入到模拟选号</button>
         <button class="btn-clear" onclick="clearPickResults()">清除结果</button>
       </div>
       <h3 style="display:flex;align-items:center;justify-content:space-between;">选号结果 <span style="font-size:12px;color:var(--fg-secondary);font-weight:normal;" id="pickResultCount"></span></h3>
       <div id="pickResultGroups"></div>
+      <div id="pickVerifyResult" style="margin-top:15px;"></div>
     </div>
   </div>
 
@@ -2060,7 +2062,70 @@ function renderPickResults() {
 function clearPickResults() {
   pickedGroups = [];
   document.getElementById('pickResultArea').style.display = 'none';
-  showToast('已清除选号结果');
+  const verifyEl = document.getElementById('pickVerifyResult');
+  if (verifyEl) verifyEl.innerHTML = '';
+  if (typeof simClearSlip === 'function') simClearSlip();
+  showToast('已清除选号结果及选号单');
+}
+
+function verifyPickResults() {
+  if (pickedGroups.length === 0) {
+    showToast('请先生成选号');
+    return;
+  }
+  if (drawData.length === 0) {
+    showToast('请先获取开奖数据');
+    return;
+  }
+  const latest = drawData[0];
+  const drawSet = new Set(latest.numbers);
+
+  let totalPrize = 0;
+  let totalWinGroups = 0;
+
+  const html = pickedGroups.map((group, idx) => {
+    const type = Math.min(group.length, 15);
+    const rule = PRIZE_RULES[type] || PRIZE_RULES[10];
+    const hits = group.filter(n => drawSet.has(n));
+    const hitCount = hits.length;
+    const prize = getPrize(type, hitCount);
+    const isWin = checkWin(type, hitCount);
+    if (isWin) { totalPrize += prize; totalWinGroups += 1; }
+
+    const balls = group.map(n => {
+      const isHit = drawSet.has(n);
+      return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+    }).join('');
+
+    return `
+      <div class="saved-verify-item">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:13px;font-weight:600;">第${idx + 1}组 ${rule.name}</span>
+          <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px;">${balls}</div>
+        ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const totalGroups = pickedGroups.length;
+  const totalCost = totalGroups * 2;
+  const profit = totalPrize - totalCost;
+
+  const summary = `
+    <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${latest.period}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">开奖号码</span><div style="font-size:14px;font-weight:700;color:var(--accent);">${latest.numbers.map(n => String(n).padStart(2,'0')).join(' ')}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">购买组数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalGroups} 组</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏金额</span><div style="font-size:16px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
+    </div>
+  `;
+
+  document.getElementById('pickVerifyResult').innerHTML = summary + html;
+  showToast('验证完成');
 }
 
 function copyCurrentPick() {
