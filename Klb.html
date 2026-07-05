@@ -1450,8 +1450,12 @@ body {
     </div>
 
     <div id="pickResultArea" class="result-area" style="display:none;">
-      <div style="margin-bottom:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <div style="margin-bottom:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center;">
         <button class="btn-icon" onclick="copyCurrentPick()">📋 复制号码</button>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-secondary);">
+          <span>期号</span>
+          <input type="text" id="pickVerifyPeriodNum" placeholder="如2026150" style="width:100px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg-secondary);color:var(--fg-primary);font-size:13px;">
+        </div>
         <button class="btn-generate" onclick="verifyPickResults()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#ff6b6b,#ee5a6f);">🎯 验证中奖</button>
         <button class="btn-generate" onclick="importPickToSim()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">导入到模拟选号</button>
         <button class="btn-clear" onclick="clearPickResults()">清除结果</button>
@@ -1523,8 +1527,12 @@ body {
         <div class="sim-slip-total">
           共 <strong id="simTotalBets">0</strong> 注，共 <strong id="simTotalCost">0</strong> 元
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <button class="btn-random" onclick="simAddRandomToSlip()" style="padding:8px 18px;font-size:13px;">机选一注加入选号单</button>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-secondary);">
+            <span>期号</span>
+            <input type="text" id="simVerifyPeriodNum" placeholder="如2026150" style="width:100px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg-secondary);color:var(--fg-primary);font-size:13px;">
+          </div>
           <button class="btn-generate" onclick="simVerifySlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#1e90ff,#0d47a1);">验证中奖</button>
           <button class="btn-generate" onclick="simCopySlip()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">复制号码</button>
         </div>
@@ -1536,8 +1544,12 @@ body {
     <div class="sim-slip" id="simSavedArea" style="margin-top:12px;display:none;">
       <div class="sim-slip-header">
         <h3><span style="display:inline-block;width:4px;height:16px;background:var(--green);border-radius:2px;"></span> 已保存选号 <span id="simSavedCount" style="font-size:13px;color:var(--fg-secondary);font-weight:normal;"></span></h3>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-icon" onclick="simVerifySaved()" style="font-size:12px;background:var(--accent);color:#fff;">验算当期</button>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-secondary);">
+            <span>期号</span>
+            <input type="text" id="simSavedVerifyPeriodNum" placeholder="如2026150" style="width:100px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg-secondary);color:var(--fg-primary);font-size:13px;">
+          </div>
+          <button class="btn-icon" onclick="simVerifySaved()" style="font-size:12px;background:var(--accent);color:#fff;">验算</button>
           <button class="btn-icon" onclick="simClearSaved()" style="font-size:12px;">清空</button>
         </div>
       </div>
@@ -2077,8 +2089,18 @@ function verifyPickResults() {
     showToast('请先获取开奖数据');
     return;
   }
-  const latest = drawData[0];
-  const drawSet = new Set(latest.numbers);
+  const periodInput = document.getElementById('pickVerifyPeriodNum').value.trim();
+  let draw;
+  if (periodInput) {
+    draw = drawData.find(d => String(d.period) === String(periodInput) || String(d.period).endsWith(String(periodInput)));
+    if (!draw) {
+      showToast(`未找到期号 ${periodInput} 的开奖数据`);
+      return;
+    }
+  } else {
+    draw = drawData[0];
+  }
+  const drawSet = new Set(draw.numbers);
 
   let totalPrize = 0;
   let totalWinGroups = 0;
@@ -2115,8 +2137,8 @@ function verifyPickResults() {
 
   const summary = `
     <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
-      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${latest.period}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">开奖号码</span><div style="font-size:14px;font-weight:700;color:var(--accent);">${latest.numbers.map(n => String(n).padStart(2,'0')).join(' ')}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${draw.period}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">开奖号码</span><div style="font-size:14px;font-weight:700;color:var(--accent);">${draw.numbers.map(n => String(n).padStart(2,'0')).join(' ')}</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">购买组数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalGroups} 组</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
@@ -2125,7 +2147,7 @@ function verifyPickResults() {
   `;
 
   document.getElementById('pickVerifyResult').innerHTML = summary + html;
-  showToast('验证完成');
+  showToast(`验算完成：${draw.period}`);
 }
 
 function copyCurrentPick() {
@@ -3833,6 +3855,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const ta = document.getElementById('verifyInput');
   if (ta) ta.addEventListener('input', updateVerifyCount);
   initTabDrag();
+  fetchData(30);
 });
 
 // ==================== 模拟选号 ====================
@@ -4234,8 +4257,18 @@ function simVerifySlip() {
     showToast('请先获取开奖数据（在走势分析页面）');
     return;
   }
-  const latest = drawData[0];
-  const drawSet = new Set(latest.numbers);
+  const periodInput = document.getElementById('simVerifyPeriodNum').value.trim();
+  let draw;
+  if (periodInput) {
+    draw = drawData.find(d => String(d.period) === String(periodInput) || String(d.period).endsWith(String(periodInput)));
+    if (!draw) {
+      showToast(`未找到期号 ${periodInput} 的开奖数据`);
+      return;
+    }
+  } else {
+    draw = drawData[0];
+  }
+  const drawSet = new Set(draw.numbers);
 
   let totalPrize = 0;
   let totalWinBets = 0;
@@ -4271,7 +4304,8 @@ function simVerifySlip() {
 
   const summary = `
     <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
-      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${latest.period}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${draw.period}</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">开奖号码</span><div style="font-size:14px;font-weight:700;color:var(--accent);">${draw.numbers.map(n => String(n).padStart(2,'0')).join(' ')}</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">购买注数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalBets} 注</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
@@ -4280,7 +4314,7 @@ function simVerifySlip() {
   `;
 
   document.getElementById('simSlipResult').innerHTML = summary + html;
-  showToast('验证完成');
+  showToast(`验算完成：${draw.period}`);
 }
 
 function simRenderSlip() {
@@ -4428,54 +4462,69 @@ function simVerifySaved() {
     showToast('请先获取开奖数据');
     return;
   }
-  // 取最新一期开奖数据
-  const latest = drawData[0];
-  const drawSet = new Set(latest.numbers);
+  const periodCount = Math.max(1, parseInt(document.getElementById('simSavedVerifyPeriodNum').value) || 1);
+  const actualCount = Math.min(periodCount, drawData.length);
+  const recentData = drawData.slice(0, actualCount);
 
   let totalPrize = 0;
   let totalWinBets = 0;
+  let totalBetsAcrossAllPeriods = 0;
 
-  const html = savedSimBets.map((bet, idx) => {
-    const allNums = [...bet.dan, ...bet.tuo].sort((a, b) => a - b);
-    const hits = allNums.filter(n => drawSet.has(n));
-    const hitCount = hits.length;
-    const prize = getPrize(bet.type, hitCount);
-    const isWin = checkWin(bet.type, hitCount);
-    if (isWin) { totalPrize += prize; totalWinBets += bet.bets; }
+  const periodHtml = recentData.map((draw, pIdx) => {
+    const drawSet = new Set(draw.numbers);
 
-    const hitBalls = allNums.map(n => {
-      const isHit = drawSet.has(n);
-      return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+    const html = savedSimBets.map((bet, idx) => {
+      const allNums = [...bet.dan, ...bet.tuo].sort((a, b) => a - b);
+      const hits = allNums.filter(n => drawSet.has(n));
+      const hitCount = hits.length;
+      const prize = getPrize(bet.type, hitCount);
+      const isWin = checkWin(bet.type, hitCount);
+      if (isWin) { totalPrize += prize; totalWinBets += bet.bets; }
+      totalBetsAcrossAllPeriods += bet.bets;
+
+      const hitBalls = allNums.map(n => {
+        const isHit = drawSet.has(n);
+        return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
+      }).join('');
+
+      return `
+        <div class="saved-verify-item">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:13px;font-weight:600;">第${idx + 1}注 ${bet.typeName}</span>
+            <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
+          ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+        </div>
+      `;
     }).join('');
 
     return `
-      <div class="saved-verify-item">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:13px;font-weight:600;">第${idx + 1}注 ${bet.typeName}</span>
-          <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
+      <div class="verify-period-group" style="margin-bottom:12px;">
+        <div class="verify-period-title" style="font-size:13px;font-weight:700;color:var(--fg-primary);margin-bottom:6px;padding:6px 10px;background:var(--bg-secondary);border-radius:6px;">
+          第${pIdx + 1}期 · ${draw.period} · 号码: ${draw.numbers.map(n => String(n).padStart(2,'0')).join(' ')}
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
-        ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+        ${html}
       </div>
     `;
   }).join('');
 
-  const totalBets = savedSimBets.reduce((s,b)=>s+b.bets,0);
-  const totalCost = totalBets * SIM_PRICE;
+  const totalBets = savedSimBets.reduce((s, b) => s + b.bets, 0);
+  const totalCost = totalBetsAcrossAllPeriods * SIM_PRICE;
   const profit = totalPrize - totalCost;
-  
+
   const summary = `
     <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
-      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${latest.period}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">购买注数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalBets} 注</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期数</span><div style="font-size:16px;font-weight:700;">${recentData.length}期 (${recentData[recentData.length - 1].period} ~ ${recentData[0].period})</div></div>
+      <div><span style="font-size:12px;color:var(--fg-secondary);">总注数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalBetsAcrossAllPeriods} 注</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
       <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏金额</span><div style="font-size:16px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
     </div>
   `;
 
-  document.getElementById('simSavedResult').innerHTML = summary + html;
-  showToast('验算完成');
+  document.getElementById('simSavedResult').innerHTML = summary + periodHtml;
+  showToast(`验算完成：${recentData.length}期`);
 }
 
 // ==================== 区间选号导入到模拟选号 ====================
