@@ -1505,6 +1505,15 @@ body {
       </div>
     </div>
 
+    <div class="sim-batch-row">
+      <div class="sim-batch-group">
+        <span class="sim-batch-label" style="color:var(--green);">批量选号：</span>
+        <input type="text" class="sim-batch-input" id="simBatchInput" placeholder="如：01,05,12,30 或 01 05 12 30（粘贴一串号码）" onkeydown="if(event.key==='Enter')simApplyBatch()">
+        <button class="sim-batch-apply" onclick="simApplyBatch()" style="background:linear-gradient(135deg,#2ed573,#1e90ff);color:#fff;">加入选号</button>
+        <span style="font-size:12px;color:var(--fg-secondary);margin-left:4px;">把上面号码一次性加入选号（可与已有叠加）</span>
+      </div>
+    </div>
+
     <div class="sim-grid-wrap">
       <div class="sim-grid" id="simGrid"></div>
     </div>
@@ -1513,6 +1522,18 @@ body {
       <button class="btn-clear" onclick="simClear()">清空</button>
       <button class="btn-random" onclick="simRandom()" id="simRandomBtn">10机选</button>
       <button class="btn-generate" onclick="simAddToSlip()">加入选号单</button>
+    </div>
+
+    <div class="sim-batch-row">
+      <div class="sim-batch-group">
+        <span class="sim-batch-label">批量机选：</span>
+        <input type="number" class="sim-batch-input" id="simBatchCount" value="5" min="1" max="200" style="width:68px;font-family:inherit;" onkeydown="if(event.key==='Enter')simBatchRandom()">
+        <span style="font-size:13px;color:var(--fg-secondary);">注</span>
+        <button class="sim-batch-apply dan-apply" onclick="simBatchRandom()">生成并加入选号单</button>
+      </div>
+      <div class="sim-batch-group">
+        <button class="sim-batch-apply dan-apply" onclick="showSimBatchImport()" style="background:linear-gradient(135deg,#1e90ff,#0d47a1);color:#fff;">批量导入文本</button>
+      </div>
     </div>
 
     <div class="sim-slip">
@@ -1707,6 +1728,25 @@ body {
     <div class="modal-actions">
       <button style="background:var(--bg-light);color:var(--fg-primary);" onclick="closeManualModal()">取消</button>
       <button style="background:var(--accent);color:#fff;" onclick="parseManualInput()">导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 批量导入选号弹窗 -->
+<div class="modal-overlay" id="simBatchModal">
+  <div class="modal-box">
+    <h3>批量导入选号</h3>
+    <p style="font-size:13px;color:var(--fg-secondary);margin-bottom:10px;">
+      每行输入一注号码，号码间用空格或逗号分隔。<br>
+      当前玩法：<strong id="simBatchImportType"></strong>（至少 <strong id="simBatchImportMin"></strong> 个号码，多于该数量将自动按复式展开）。<br>
+      示例：<br>
+      01 05 12 23 34 41 55 62 71 08<br>
+      03 09 17 25 33 44 56 68 77 02
+    </p>
+    <textarea id="simBatchImportInput" placeholder="每行一注，例如：&#10;01 05 12 23 34 41 55 62 71 08&#10;03 09 17 25 33 44 56 68 77 02"></textarea>
+    <div class="modal-actions">
+      <button style="background:var(--bg-light);color:var(--fg-primary);" onclick="closeSimBatchModal()">取消</button>
+      <button style="background:var(--accent);color:#fff;" onclick="simImportBatch()">导入到选号单</button>
     </div>
   </div>
 </div>
@@ -4075,6 +4115,25 @@ function simApplyExclude() {
   simSyncInputs();
 }
 
+function simApplyBatch() {
+  const input = document.getElementById('simBatchInput');
+  const nums = simParseInput(input.value);
+  if (nums.length === 0) {
+    showToast('请输入有效的号码（1-80）');
+    return;
+  }
+  let added = 0;
+  nums.forEach(n => {
+    if (simExcluded.has(n)) simExcluded.delete(n);
+    if (simDan.has(n)) simDan.delete(n);
+    if (!simSelected.has(n)) added++;
+    simSelected.add(n);
+  });
+  simRenderGrid();
+  simSyncInputs();
+  showToast(`批量加入选号 ${nums.length} 个号码（新增 ${added} 个）`);
+}
+
 function simSyncInputs() {
   const danNums = [...simDan].sort((a, b) => a - b).map(n => String(n).padStart(2, '0'));
   document.getElementById('simDanInput').value = danNums.join(' ');
@@ -4088,6 +4147,8 @@ function simClear() {
   simExcluded.clear();
   document.getElementById('simDanInput').value = '';
   document.getElementById('simExcludeInput').value = '';
+  const bi = document.getElementById('simBatchInput');
+  if (bi) bi.value = '';
   simRenderGrid();
 }
 
@@ -4204,6 +4265,94 @@ function simAddRandomToSlip() {
   simSlipBets.push(entry);
   simRenderSlip();
   showToast(`已加入选号单：${name} ${bets}注`);
+}
+
+// 批量机选：生成 N 注随机选号并加入选号单（遵循当前玩法、胆码、排除号）
+function simBatchRandom() {
+  const type = simGetPlayType();
+  const min = simGetMinPick();
+  const name = document.getElementById('simPlayType').selectedOptions[0].text;
+  const danCount = simDan.size;
+  if (danCount > min) {
+    showToast(`胆码(${danCount}个)不能超过选号数量(${min}个)`);
+    return;
+  }
+  let count = parseInt(document.getElementById('simBatchCount').value) || 5;
+  count = Math.max(1, Math.min(200, count));
+  const danNums = [...simDan].sort((a, b) => a - b);
+  const pool = Array.from({length: 80}, (_, i) => i + 1).filter(n => !simDan.has(n) && !simExcluded.has(n));
+  const need = min - danCount;
+  let totalBets = 0;
+  for (let i = 0; i < count; i++) {
+    const p = [...pool];
+    shuffle(p);
+    const tuoNums = p.slice(0, need).sort((a, b) => a - b);
+    const allNums = [...danNums, ...tuoNums];
+    const bets = type <= 10 ? 1 : simCombination(allNums.length, 10);
+    simSlipBets.push({
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 7),
+      type: type,
+      typeName: name,
+      dan: danNums,
+      tuo: tuoNums,
+      bets: bets,
+      cost: bets * SIM_PRICE,
+      time: new Date().toLocaleString('zh-CN'),
+    });
+    totalBets += bets;
+  }
+  simRenderSlip();
+  showToast(`已生成 ${count} 注随机选号（共 ${totalBets} 个组合）到选号单`);
+}
+
+// 批量导入：从文本粘贴多行，每行一注
+function showSimBatchImport() {
+  const type = simGetPlayType();
+  const name = document.getElementById('simPlayType').selectedOptions[0].text;
+  document.getElementById('simBatchImportType').textContent = name;
+  document.getElementById('simBatchImportMin').textContent = simGetMinPick();
+  document.getElementById('simBatchModal').classList.add('show');
+  const ta = document.getElementById('simBatchImportInput');
+  ta.value = '';
+  ta.focus();
+}
+
+function closeSimBatchModal() {
+  document.getElementById('simBatchModal').classList.remove('show');
+}
+
+function simImportBatch() {
+  const type = simGetPlayType();
+  const min = simGetMinPick();
+  const name = document.getElementById('simPlayType').selectedOptions[0].text;
+  const text = document.getElementById('simBatchImportInput').value;
+  const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length === 0) {
+    showToast('请输入要导入的号码');
+    return;
+  }
+  let imported = 0, skipped = 0, totalBets = 0;
+  lines.forEach(line => {
+    const nums = simParseInput(line);
+    if (nums.length < min) { skipped++; return; }
+    const bets = simCalcBets(new Set(nums), new Set(), type);
+    if (bets === 0) { skipped++; return; }
+    simSlipBets.push({
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 7),
+      type: type,
+      typeName: name,
+      dan: [],
+      tuo: nums.slice().sort((a, b) => a - b),
+      bets: bets,
+      cost: bets * SIM_PRICE,
+      time: new Date().toLocaleString('zh-CN'),
+    });
+    imported++;
+    totalBets += bets;
+  });
+  simRenderSlip();
+  closeSimBatchModal();
+  showToast(`成功导入 ${imported} 注（${totalBets} 个组合），跳过 ${skipped} 行`);
 }
 
 function simRemoveBet(id) {
