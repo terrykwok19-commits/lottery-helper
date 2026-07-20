@@ -4231,6 +4231,28 @@ function simAddToSlip() {
   showToast(`已加入选号单：${name} ${bets}注 ${entry.cost}元`);
 }
 
+// 生成一组随机拖码：若提供自选号码池 selPool，则优先从中抽取；数量不足时从全号池补足
+function simMakeRandomTuo(danSet, excludeSet, selPool, need) {
+  const basePool = [];
+  for (let n = 1; n <= 80; n++) {
+    if (!danSet.has(n) && !excludeSet.has(n)) basePool.push(n);
+  }
+  const selAvail = (selPool || []).filter(n => !danSet.has(n) && !excludeSet.has(n));
+  if (selAvail.length >= need) {
+    const p = [...selAvail];
+    shuffle(p);
+    return { tuo: p.slice(0, need).sort((a, b) => a - b), fromSel: true, toppedUp: false };
+  }
+  if (selAvail.length > 0) {
+    const rest = basePool.filter(n => !selAvail.includes(n));
+    shuffle(rest);
+    return { tuo: [...selAvail, ...rest.slice(0, need - selAvail.length)].sort((a, b) => a - b), fromSel: true, toppedUp: true };
+  }
+  const p = [...basePool];
+  shuffle(p);
+  return { tuo: p.slice(0, need).sort((a, b) => a - b), fromSel: false, toppedUp: false };
+}
+
 function simAddRandomToSlip() {
   const type = simGetPlayType();
   const min = simGetMinPick();
@@ -4243,10 +4265,9 @@ function simAddRandomToSlip() {
   }
 
   const danNums = [...simDan].sort((a, b) => a - b);
-  const pool = Array.from({length: 80}, (_, i) => i + 1).filter(n => !simDan.has(n) && !simExcluded.has(n));
-  shuffle(pool);
   const need = min - danCount;
-  const tuoNums = pool.slice(0, need).sort((a, b) => a - b);
+  const selPool = [...simSelected];
+  const { tuo: tuoNums } = simMakeRandomTuo(simDan, simExcluded, selPool, need);
 
   const allNums = [...danNums, ...tuoNums];
   const bets = type <= 10 ? 1 : simCombination(allNums.length, 10);
@@ -4280,13 +4301,14 @@ function simBatchRandom() {
   let count = parseInt(document.getElementById('simBatchCount').value) || 5;
   count = Math.max(1, Math.min(200, count));
   const danNums = [...simDan].sort((a, b) => a - b);
-  const pool = Array.from({length: 80}, (_, i) => i + 1).filter(n => !simDan.has(n) && !simExcluded.has(n));
   const need = min - danCount;
+  const selPool = [...simSelected];
   let totalBets = 0;
+  let anyFromSel = false, anyTopUp = false;
   for (let i = 0; i < count; i++) {
-    const p = [...pool];
-    shuffle(p);
-    const tuoNums = p.slice(0, need).sort((a, b) => a - b);
+    const { tuo: tuoNums, fromSel, toppedUp } = simMakeRandomTuo(simDan, simExcluded, selPool, need);
+    if (fromSel) anyFromSel = true;
+    if (toppedUp) anyTopUp = true;
     const allNums = [...danNums, ...tuoNums];
     const bets = type <= 10 ? 1 : simCombination(allNums.length, 10);
     simSlipBets.push({
@@ -4302,7 +4324,10 @@ function simBatchRandom() {
     totalBets += bets;
   }
   simRenderSlip();
-  showToast(`已生成 ${count} 注随机选号（共 ${totalBets} 个组合）到选号单`);
+  let msg = `已生成 ${count} 注随机选号（共 ${totalBets} 个组合）到选号单`;
+  if (anyFromSel) msg += '（从自选号码中抽取）';
+  if (anyTopUp) msg += '；自选号码不足，部分从全号池补足';
+  showToast(msg);
 }
 
 // 批量导入：从文本粘贴多行，每行一注
