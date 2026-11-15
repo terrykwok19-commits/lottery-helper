@@ -233,6 +233,35 @@ body {
   border-color: var(--gold);
   color: #1a1a2e;
 }
+.zone-mode-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.zone-mode-hint {
+  font-size: 12px;
+  color: var(--fg-secondary);
+  margin-left: 4px;
+}
+/* 10区选号：每区8个号码，球排成一行 */
+.zone-grid.zone-grid-10 {
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 12px;
+}
+.zone-grid.zone-grid-10 .zone-balls {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.zone-grid.zone-grid-10 .ball {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  font-size: 12px;
+}
 .btn-clear { background: var(--bg-light); color: var(--fg-primary); }
 .btn-random {
   background: linear-gradient(135deg, #f0a500, #e6940a);
@@ -1388,6 +1417,7 @@ body {
 }
 @media (max-width: 640px) {
   .pred-grid { grid-template-columns: repeat(8, 1fr); }
+  .zone-grid.zone-grid-10 { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -1414,10 +1444,12 @@ body {
 
   <!-- ========== 选号面板 ========== -->
   <div id="pickPanel" class="tab-panel active">
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
+    <div class="zone-mode-row">
       <button id="zoneMode8" class="btn-mode active" onclick="switchZoneMode(8)">8区选号</button>
+      <button id="zoneMode10" class="btn-mode" onclick="switchZoneMode(10)">10区选号</button>
       <button id="zoneMode4" class="btn-mode" onclick="switchZoneMode(4)">4区选号</button>
       <button id="zoneModeMix" class="btn-mode" onclick="switchZoneMode('mix')">混合选号</button>
+      <span class="zone-mode-hint" id="zoneModeHint">8区：每区10个号码（01-10 … 71-80）</span>
     </div>
     <div class="zone-grid" id="zoneGrid"></div>
 
@@ -1785,7 +1817,30 @@ const ZONES4_PICK = [
   { id: 4, label: '第四区', range: [61, 80], color: '#2ed573' },
 ];
 
-let zoneMode = 8; // 8区、4区或'mix'混合模式
+// 10区选号配置（80个号码分10区，每区8个）
+const ZONES10_PICK = [
+  { id: 1,  label: '一区', range: [1, 8],   color: '#e53935' },
+  { id: 2,  label: '二区', range: [9, 16],  color: '#f4511e' },
+  { id: 3,  label: '三区', range: [17, 24], color: '#fb8c00' },
+  { id: 4,  label: '四区', range: [25, 32], color: '#ffc107' },
+  { id: 5,  label: '五区', range: [33, 40], color: '#8bc34a' },
+  { id: 6,  label: '六区', range: [41, 48], color: '#43a047' },
+  { id: 7,  label: '七区', range: [49, 56], color: '#00acc1' },
+  { id: 8,  label: '八区', range: [57, 64], color: '#1e88e5' },
+  { id: 9,  label: '九区', range: [65, 72], color: '#3949ab' },
+  { id: 10, label: '十区', range: [73, 80], color: '#8e24aa' },
+];
+
+// 根据当前模式返回区间配置
+function getActiveZones(mode) {
+  const m = mode === undefined ? zoneMode : mode;
+  if (m === 10) return ZONES10_PICK;
+  if (m === 4) return ZONES4_PICK;
+  if (m === 'mix') return ZONES_MIX;
+  return ZONES;
+}
+
+let zoneMode = 8; // 8区、10区、4区或'mix'混合模式
 let zoneCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // 每区选几个
 let manualSelected = new Set();              // 手动点击选中的号码
 let fixedNumbers = new Set();                // 双击固定的号码
@@ -1797,7 +1852,8 @@ function buildZoneGrid() {
   const grid = document.getElementById('zoneGrid');
   grid.innerHTML = '';
   
-  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = getActiveZones();
+  grid.classList.toggle('zone-grid-10', zoneMode === 10);
   
   zones.forEach((z, idx) => {
     const card = document.createElement('div');
@@ -1832,18 +1888,28 @@ function switchZoneMode(mode) {
   zoneMode = mode;
   
   document.getElementById('zoneMode8').classList.toggle('active', mode === 8);
+  document.getElementById('zoneMode10').classList.toggle('active', mode === 10);
   document.getElementById('zoneMode4').classList.toggle('active', mode === 4);
   document.getElementById('zoneModeMix').classList.toggle('active', mode === 'mix');
   
-  const zones = mode === 4 ? ZONES4_PICK : mode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = getActiveZones(mode);
   zoneCounts = new Array(zones.length).fill(0);
+  
+  const hint = document.getElementById('zoneModeHint');
+  if (hint) {
+    const per = zones[0].range[1] - zones[0].range[0] + 1;
+    const name = mode === 10 ? '10区' : mode === 4 ? '4区' : mode === 'mix' ? '混合' : '8区';
+    hint.textContent = `${name}：每区${per}个号码（${String(zones[0].range[0]).padStart(2,'0')}-${String(zones[0].range[1]).padStart(2,'0')} … ${String(zones[zones.length-1].range[0]).padStart(2,'0')}-${String(zones[zones.length-1].range[1]).padStart(2,'0')}）`;
+  }
   
   buildZoneGrid();
   updateTotalPicked();
 }
 
 function changeCount(idx, delta) {
-  zoneCounts[idx] = Math.max(0, Math.min(10, zoneCounts[idx] + delta));
+  const zones = getActiveZones();
+  const zoneSize = zones[idx] ? zones[idx].range[1] - zones[idx].range[0] + 1 : 10;
+  zoneCounts[idx] = Math.max(0, Math.min(zoneSize, zoneCounts[idx] + delta));
   document.getElementById(`count-${idx}`).textContent = zoneCounts[idx];
   updateTotalPicked();
 }
@@ -1946,7 +2012,7 @@ function pickClearDan() {
 function generateNumbers() {
   const result = new Set();
   
-  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = getActiveZones();
 
   // 按区选号：固定号码优先，然后自选，不足随机补
   zones.forEach((z, idx) => {
@@ -2005,7 +2071,7 @@ function batchGenerate(count) {
     return;
   }
   
-  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = getActiveZones();
   
   for (let i = 0; i < count; i++) {
     const result = new Set();
@@ -2045,17 +2111,27 @@ function batchGenerate(count) {
 }
 
 function randomAll() {
-  // 每区随机1-3个，共约20个
-  zoneCounts = zoneCounts.map(() => Math.floor(Math.random() * 3) + 1);
+  // 按当前区间数自适应：总目标约20个，每区在平均值的 ±1 范围内随机
+  const zones = getActiveZones();
+  const target = 20;
+  const avg = target / zones.length;
+  const lo = Math.max(1, Math.floor(avg) - 1);
+  const hi = Math.max(lo, Math.ceil(avg) + 1);
+  zoneCounts = zones.map(z => {
+    const zoneSize = z.range[1] - z.range[0] + 1;
+    const c = lo + Math.floor(Math.random() * (hi - lo + 1));
+    return Math.min(zoneSize, c);
+  });
   zoneCounts.forEach((c, i) => {
-    document.getElementById(`count-${i}`).textContent = c;
+    const el = document.getElementById(`count-${i}`);
+    if (el) el.textContent = c;
   });
   manualSelected.clear();
   generateNumbers();
 }
 
 function clearAll() {
-  const zones = zoneMode === 4 ? ZONES4_PICK : zoneMode === 'mix' ? ZONES_MIX : ZONES;
+  const zones = getActiveZones();
   zoneCounts = new Array(zones.length).fill(0);
   zoneCounts.forEach((_, i) => {
     document.getElementById(`count-${i}`).textContent = 0;
