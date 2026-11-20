@@ -1,0 +1,441 @@
+/* ============================================================
+   mobile.css —— 手机端适配（桌面端完全不受影响）
+   断点：768px（平板竖屏 / 大屏手机）、430px（小屏手机）
+   要点：字号可读、按钮够大（≥42px）、单行横滑代替换行、
+        输入框 16px 防 iOS 聚焦放大、表格首列吸边
+   ============================================================ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+button, .tab-btn, .ball, .chip, a, select, .mini-ball {
+  touch-action: manipulation;
+}
+
+/* 横向滑动提示（仅手机显示） */
+.scroll-hint {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--fg-secondary, #5a5a7a);
+  background: rgba(33, 150, 243, .07);
+  border: 1px dashed rgba(33, 150, 243, .35);
+  border-radius: 8px;
+  padding: 6px 9px;
+  margin-bottom: 8px;
+}
+.scroll-hint::before { content: '⇄'; font-size: 13px; color: #2196f3; }
+
+@media (max-width: 768px) {
+
+  /* ==================== 顶栏 ==================== */
+  .top-bar { padding: 10px 14px; }
+  .top-bar h1 { font-size: 17px; letter-spacing: .5px; }
+  .top-bar .sub {
+    font-size: 11px;
+    margin-top: 2px;
+    line-height: 1.35;
+    opacity: .8;
+  }
+
+  .container { padding: 12px 10px calc(18px + env(safe-area-inset-bottom)); }
+
+  /* ==================== 表单控件 ====================
+     iOS Safari 对 <16px 的输入框会自动放大页面，统一压到 16px */
+  input[type="text"], input[type="number"], input[type="search"],
+  input:not([type]), select, textarea {
+    font-size: 16px !important;
+  }
+  input, select, textarea { border-radius: 8px; }
+  select { min-height: 42px; padding: 8px 10px; }
+
+  /* ==================== 通用按钮 ==================== */
+  .btn, .data-bar button, .action-bar button, .sim-actions button,
+  .btn-fetch, .btn-download, .btn-period-apply,
+  .sim-batch-apply, .btn-save, .btn-icon {
+    min-height: 42px;
+  }
+  .btn-sm { min-height: 32px; }
+
+  /* ==================== 页内标签栏 ====================
+     不换行、单行横滑，滚动条隐藏 */
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    padding: 9px 15px;
+    font-size: 13px;
+    min-height: 38px;
+  }
+
+  /* ==================== 数据操作条 ==================== */
+  .data-bar { gap: 8px; margin-bottom: 12px; }
+  .data-bar button { padding: 9px 14px; font-size: 13px; }
+  .data-bar .data-status,
+  .data-bar > .data-status { flex: 1 1 100%; font-size: 12px; line-height: 1.45; }
+
+  /* ==================== 期数选择 ==================== */
+  .period-selector { padding: 8px 10px; gap: 6px; font-size: 13px; }
+  .period-input { width: 62px; min-height: 40px; padding: 6px; }
+  .btn-period-apply { padding: 8px 16px; }
+
+  /* ==================== 最新开奖卡片 ==================== */
+  .latest-draw { padding: 14px 12px; border-radius: 12px; margin-bottom: 12px; }
+  .latest-draw h3 { font-size: 13px; margin-bottom: 8px; }
+  .latest-draw .draw-info { gap: 10px 14px; font-size: 13px; margin-bottom: 10px; }
+  .draw-ball { width: 38px; height: 38px; font-size: 15px; }
+  .draw-divider { height: 38px; margin: 0 1px; }
+  .latest-draw .balls-row { gap: 7px; }
+
+  /* ==================== 宽表（走势 / 分布） ====================
+     手机上不再内部上下滚动，交给整页滚动；期号列吸在左边 */
+  .dist-container,
+  .trend-main,
+  .tail-scroll {
+    max-height: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dist-period-col { position: sticky; left: 0; z-index: 3; box-shadow: 2px 0 0 #2196f3; }
+  .trend-period-col { position: sticky; left: 0; z-index: 3; }
+  .scroll-hint { display: flex; }
+
+  /* ==================== 页面通用卡片 ==================== */
+  .pick-card { padding: 12px 10px 8px; border-radius: 12px; margin-bottom: 12px; }
+  .result-area, .saved-card { padding: 14px 12px; border-radius: 12px; }
+}
+
+/* ==================== 触摸设备：去掉 hover 位移 ==================== */
+@media (hover: none) {
+  .zone-card:hover,
+  .btn:hover,
+  .data-bar button:hover,
+  .action-bar button:hover,
+  .tab-btn:hover,
+  .chip:hover,
+  .btn-mode:hover { transform: none; }
+  .zone-card:hover { box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.08)); }
+  .ball:hover { transform: none; color: var(--fg-secondary); }
+}
+
+/* ============================================================
+   双色球（Ssq.html）
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* 双色球只有两个标签，做成等宽分段控件更整齐 */
+  body.page-ssq .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    overflow: visible;
+  }
+  body.page-ssq .tab-btn { width: 100%; text-align: center; padding: 11px 8px; font-size: 14px; }
+
+  body.page-ssq .pick-head { margin-bottom: 8px; gap: 2px; }
+  body.page-ssq .pick-head h3 { font-size: 15px; }
+  body.page-ssq .pick-head #pickStatus { font-size: 11px; line-height: 1.4; }
+
+  /* 副标题在手机上太占地方 */
+  body.page-ssq .pick-sub { display: none; }
+
+  /* ---------- 区比工具条 ---------- */
+  body.page-ssq .ratio-row { padding: 8px 10px; gap: 6px; margin-bottom: 10px; font-size: 12px; }
+  body.page-ssq .ratio-row > span:first-child { flex: 0 0 auto; }
+  body.page-ssq .ratio-input { width: 66px; min-height: 36px; padding: 4px 6px; }
+  body.page-ssq .chip { min-height: 34px; padding: 7px 12px; font-size: 12px; }
+  body.page-ssq .ratio-tip { display: none; }
+
+  /* ---------- 分区卡片：标题 + 加减号同一行，球铺满 ---------- */
+  body.page-ssq .zone-grid { grid-template-columns: 1fr; gap: 9px; margin-bottom: 12px; }
+  body.page-ssq .zone-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 6px 8px;
+    padding: 9px 11px;
+  }
+  body.page-ssq .zone-card h4 { grid-column: 1; margin: 0; font-size: 13px; }
+  body.page-ssq .zone-count-ctrl { grid-column: 2; margin: 0; gap: 6px; }
+  body.page-ssq .zone-count-ctrl button { width: 34px; height: 34px; font-size: 18px; }
+  body.page-ssq .zone-count-ctrl .count-display { font-size: 17px; min-width: 20px; }
+  body.page-ssq .zone-balls {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+    gap: 6px;
+  }
+  body.page-ssq .ball {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    font-size: 13px;
+  }
+  body.page-ssq .ball.fixed::after {
+    top: -5px; right: -4px;
+    font-size: 8px;
+    padding: 1px 2px;
+  }
+  body.page-ssq .zone-hint {
+    grid-column: 1 / -1;
+    margin-top: 0;
+    padding-top: 6px;
+    gap: 8px;
+    font-size: 10px;
+  }
+  body.page-ssq .blue-tip { grid-column: 1 / -1; font-size: 11px !important; margin: 2px 0 4px !important; line-height: 1.5; }
+
+  /* ---------- 生成操作区：主按钮独占一行 ---------- */
+  body.page-ssq .pick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  body.page-ssq .pick-actions select { order: 1; grid-column: 1 / -1; width: 100%; }
+  body.page-ssq .pick-count-wrap {
+    order: 2;
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--fg-secondary);
+  }
+  body.page-ssq .pick-count-wrap input { width: 76px; min-height: 44px; text-align: center; }
+  body.page-ssq .pick-actions .btn { min-height: 44px; font-size: 14px; padding: 10px 12px; }
+  body.page-ssq .btn-clear-pick { order: 3; }
+  body.page-ssq .pick-actions .btn-primary {
+    order: 4;
+    grid-column: 1 / -1;
+    min-height: 52px;
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+  body.page-ssq .pick-actions .btn-gold { order: 5; }
+  body.page-ssq .btn-verify-pick { order: 6; }
+  body.page-ssq .btn-dl-pick { order: 7; grid-column: 1 / -1; min-height: 40px !important; font-size: 13px !important; }
+
+  /* ---------- 结果列表 ---------- */
+  body.page-ssq .pick-result { margin-top: 4px; }
+  body.page-ssq .pick-row { padding: 8px 9px; gap: 5px; border-radius: 8px; }
+  body.page-ssq .pick-row .idx { font-size: 11px; min-width: 16px; }
+  body.page-ssq .mini-ball { width: 26px; height: 26px; font-size: 11px; }
+  body.page-ssq .pick-row .ops { margin-left: auto; }
+  body.page-ssq .pick-row .ops .btn-sm { min-height: 34px; padding: 5px 14px; font-size: 12px; }
+  body.page-ssq .pick-summary { font-size: 12px; padding: 10px; line-height: 1.8; }
+}
+
+@media (max-width: 430px) {
+  body.page-ssq .zone-balls { grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 5px; }
+  body.page-ssq .mini-ball { width: 24px; height: 24px; font-size: 10px; }
+}
+
+/* ============================================================
+   快乐8（Klb.html）
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* ---------- 分区模式切换 ---------- */
+  body.page-klb .zone-mode-row { gap: 6px; margin-bottom: 10px; }
+  body.page-klb .btn-mode {
+    flex: 1 1 calc(50% - 3px);
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: 13px;
+    text-align: center;
+  }
+  body.page-klb .zone-mode-hint { flex: 1 1 100%; margin: 0; font-size: 11px; line-height: 1.4; }
+
+  /* ---------- 8 个分区卡片压缩成紧凑行 ---------- */
+  body.page-klb .zone-grid,
+  body.page-klb .zone-grid.zone-grid-10 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  body.page-klb .zone-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 5px 8px;
+    padding: 8px 10px;
+  }
+  body.page-klb .zone-card h3 { grid-column: 1; margin: 0; font-size: 13px; }
+  body.page-klb .zone-count-ctrl { grid-column: 2; margin: 0; gap: 5px; }
+  body.page-klb .zone-count-ctrl button { width: 34px; height: 34px; font-size: 18px; }
+  body.page-klb .zone-count-ctrl .count-display { font-size: 17px; min-width: 20px; }
+  body.page-klb .zone-count-ctrl > span:last-child { display: none; }
+
+  body.page-klb .zone-balls,
+  body.page-klb .zone-grid.zone-grid-10 .zone-balls {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+    gap: 3px;
+  }
+  body.page-klb .ball,
+  body.page-klb .zone-grid.zone-grid-10 .ball {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    font-size: 12px;
+  }
+  body.page-klb .ball.fixed::after { top: -6px; right: -3px; font-size: 8px; }
+
+  /* ---------- 批量选号输入 ---------- */
+  body.page-klb .sim-batch-row { gap: 8px; }
+  body.page-klb .sim-batch-group { width: 100%; flex-wrap: nowrap; }
+  body.page-klb .sim-batch-input { flex: 1 1 0; width: auto; min-width: 0; min-height: 42px; }
+  body.page-klb .sim-batch-apply { flex: 0 0 auto; min-height: 42px; padding: 9px 14px; }
+  body.page-klb .sim-batch-label { font-size: 12px; }
+  body.page-klb .sim-batch-note { display: none; }
+
+  /* ---------- 底部操作：智能选号独占一行 ---------- */
+  body.page-klb .action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  body.page-klb .action-bar button { min-height: 44px; padding: 10px 8px; font-size: 14px; }
+  body.page-klb .action-bar .btn-generate:first-child {
+    grid-column: 1 / -1;
+    min-height: 50px;
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+  body.page-klb .total-info {
+    grid-column: 1 / -1;
+    margin: 2px 0 0;
+    text-align: center;
+    font-size: 14px;
+  }
+  body.page-klb .total-info strong { font-size: 20px; }
+
+  /* ---------- 结果区 ---------- */
+  body.page-klb .result-ball { width: 38px; height: 38px; font-size: 14px; }
+  body.page-klb .result-balls { gap: 7px; }
+  body.page-klb .result-area h3 { font-size: 14px; }
+
+  /* ---------- 模拟选号 / 选号单 ---------- */
+  body.page-klb .sim-play-bar { gap: 6px; font-size: 13px; }
+  body.page-klb .sim-play-bar select { min-height: 42px; }
+  body.page-klb .sim-selected-info { margin-left: 0; font-size: 13px; }
+  body.page-klb .sim-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  body.page-klb .sim-actions button { min-height: 44px; }
+  body.page-klb .sim-slip-bet { padding: 8px 10px; }
+  body.page-klb .sim-slip-bet-nums .s-ball { width: 25px; height: 25px; font-size: 10px; }
+  body.page-klb .sim-slip-list { max-height: 46vh; }
+}
+
+@media (max-width: 430px) {
+  body.page-klb .zone-balls,
+  body.page-klb .zone-grid.zone-grid-10 .zone-balls {
+    grid-template-columns: repeat(auto-fill, minmax(29px, 1fr));
+  }
+}
+
+/* ============================================================
+   大乐透（Dlt.html）
+   ============================================================ */
+@media (max-width: 768px) {
+  body.page-dlt .zone-balls,
+  body.page-dlt .mini-ball { font-size: 11px; }
+  body.page-dlt .period-hint { flex: 1 1 100%; font-size: 11px; }
+}
+
+/* ============================================================
+   首页（index.html）—— 手机上不再嵌 iframe，直接给入口卡片
+   ============================================================ */
+.mobile-home { display: none; }
+
+.mobile-home .m-tip {
+  font-size: 12px;
+  color: var(--fg-secondary);
+  margin: 2px 2px 12px;
+  line-height: 1.5;
+}
+
+.mobile-home .m-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 15px 14px;
+  margin-bottom: 12px;
+  text-decoration: none;
+  color: var(--fg-primary);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--accent);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .15s, box-shadow .15s;
+}
+.mobile-home .m-card:active {
+  transform: scale(.985);
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+.mobile-home .m-ico {
+  flex: 0 0 44px;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: var(--bg-dark);
+}
+.mobile-home .m-main { flex: 1 1 auto; min-width: 0; }
+.mobile-home .m-title { display: block; font-size: 16px; font-weight: 700; }
+.mobile-home .m-desc { display: block; font-size: 12px; color: var(--fg-secondary); margin-top: 3px; line-height: 1.45; }
+.mobile-home .m-go {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.mobile-home .m-foot {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #a0a0b4;
+}
+
+.mobile-home .m-card.klb { border-left-color: #ff6b81; }
+.mobile-home .m-card.ssq { border-left-color: #e94560; }
+.mobile-home .m-card.dlt { border-left-color: #1e90ff; }
+
+@media (max-width: 768px) {
+  body.page-index .main-tabs { display: none; }
+  body.page-index .iframe-container { display: none; }
+  body.page-index .mobile-home {
+    display: block;
+    flex: 1;
+    padding: 14px 14px calc(20px + env(safe-area-inset-bottom));
+  }
+  body.page-index .top-bar { padding: 12px 16px; }
+  body.page-index .top-bar .sub { display: none; }
+  body.page-index .top-bar h1 { font-size: 18px; }
+}

@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
 <title>双色球开奖分布图</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -548,6 +549,10 @@ body {
 }
 .zone-hint span:first-child { color: #e05a6a; }
 
+.ratio-tip { margin-left: auto; font-size: 12px; color: var(--fg-secondary); }
+.pick-count-wrap { display: flex; align-items: center; gap: 8px; }
+.pick-count-wrap span { font-size: 13px; color: var(--fg-secondary); }
+
 .pick-actions {
   display: flex;
   gap: 10px;
@@ -636,8 +641,10 @@ body {
   .pick-row .ops { margin-left: 0; }
 }
 </style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23e94560'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="mobile.css">
 </head>
-<body>
+<body class="page-ssq">
 
 <div class="top-bar">
   <div>
@@ -673,6 +680,7 @@ body {
     <div class="balls-row" id="drawBalls"></div>
   </div>
 
+  <div class="scroll-hint">表格较宽，左右滑动查看全部区号</div>
   <div class="dist-container" id="distContainer"></div>
   </div><!-- /panelDist -->
 
@@ -695,7 +703,7 @@ body {
         <button class="chip" data-ratio="3:1:2" onclick="applyRatio('3:1:2')">3:1:2</button>
         <button class="chip" data-ratio="1:3:2" onclick="applyRatio('1:3:2')">1:3:2</button>
         <button class="chip" onclick="randomRatio()">随机区比</button>
-        <span style="margin-left:auto;font-size:12px;">双击红球 / 蓝球 = 设为胆码</span>
+        <span class="ratio-tip">双击红球 / 蓝球 = 设为胆码</span>
       </div>
 
       <div class="zone-grid" id="pickZoneGrid"></div>
@@ -707,13 +715,15 @@ body {
           <option value="cold">补冷（长期遗漏）</option>
           <option value="random">纯随机</option>
         </select>
-        <input type="number" id="pickCount" value="5" min="1" max="50" title="生成注数">
-        <span style="font-size:13px;color:var(--fg-secondary);">注</span>
+        <div class="pick-count-wrap">
+          <input type="number" id="pickCount" value="5" min="1" max="50" title="生成注数">
+          <span>注</span>
+        </div>
         <button class="btn btn-primary" onclick="generatePick()">生成号码</button>
         <button class="btn btn-gold" onclick="generatePick(true)">机选一注</button>
-        <button class="btn btn-plain" onclick="clearPick()">清空</button>
-        <button class="btn btn-blue" onclick="downloadPick()">下载TXT</button>
-        <button class="btn btn-blue" onclick="verifyPick()">历史验算</button>
+        <button class="btn btn-plain btn-clear-pick" onclick="clearPick()">清空</button>
+        <button class="btn btn-blue btn-dl-pick" onclick="downloadPick()">下载TXT</button>
+        <button class="btn btn-blue btn-verify-pick" onclick="verifyPick()">历史验算</button>
       </div>
 
       <div class="pick-result" id="pickResult">
@@ -1215,7 +1225,7 @@ function renderPickGrid() {
   blueCard.innerHTML =
     '<h4><span style="color:' + PICK_BLUE.color + '">蓝球区（不分区）</span>' +
       '<span class="range">01-16</span></h4>' +
-    '<div style="font-size:12px;color:var(--fg-secondary);margin-bottom:10px;">可多选；不选则从 01-16 全号池按权重抽取。双击 = 定蓝（所有注都用这个蓝球）</div>' +
+    '<div class="blue-tip" style="font-size:12px;color:var(--fg-secondary);margin-bottom:10px;">可多选；不选则从 01-16 全号池按权重抽取。双击 = 定蓝（所有注都用这个蓝球）</div>' +
     '<div class="zone-balls">' + blueBalls + '</div>' +
     zoneHintHtml(rangeNums(PICK_BLUE.range), stats.blueFreq, stats.blueMiss, stats.win);
   grid.appendChild(blueCard);
@@ -1428,6 +1438,18 @@ function generatePick(oneBet) {
   if (bets.length === 0) { alert('未能生成不重复的组合，请减少注数或增加号码池'); return; }
   pickState.bets = bets;
   renderPickResults();
+  scrollToPickResultOnMobile();
+}
+
+// 手机端：生成 / 验算后自动把结果滚到眼前，省得手动往下翻
+function scrollToPickResultOnMobile() {
+  if (!window.matchMedia('(max-width: 768px)').matches) return;
+  var box = document.getElementById('pickResult');
+  if (!box) return;
+  setTimeout(function () {
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 60;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+  }, 80);
 }
 
 function pickZoneRatio(reds) {

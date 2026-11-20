@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
 <title>快乐8选号助手</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1420,8 +1421,10 @@ body {
   .zone-grid.zone-grid-10 { grid-template-columns: 1fr; }
 }
 </style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23e94560'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="mobile.css">
 </head>
-<body>
+<body class="page-klb">
 
 <div class="top-bar">
   <div>
@@ -1542,7 +1545,7 @@ body {
         <span class="sim-batch-label" style="color:var(--green);">批量选号：</span>
         <input type="text" class="sim-batch-input" id="simBatchInput" placeholder="如：01,05,12,30 或 01 05 12 30（粘贴一串号码）" onkeydown="if(event.key==='Enter')simApplyBatch()">
         <button class="sim-batch-apply" onclick="simApplyBatch()" style="background:linear-gradient(135deg,#2ed573,#1e90ff);color:#fff;">加入选号</button>
-        <span style="font-size:12px;color:var(--fg-secondary);margin-left:4px;">把上面号码一次性加入选号（可与已有叠加）</span>
+        <span class="sim-batch-note" style="font-size:12px;color:var(--fg-secondary);margin-left:4px;">把上面号码一次性加入选号（可与已有叠加）</span>
       </div>
     </div>
 
@@ -1640,6 +1643,7 @@ body {
       <button class="btn-period-apply" onclick="distApplyPeriod()">查看</button>
       <span class="period-hint" id="distPeriodHint"></span>
     </div>
+    <div class="scroll-hint">表格较宽，左右滑动查看全部号码</div>
     <div class="dist-container" id="distContainer"></div>
   </div>
 
@@ -1648,6 +1652,7 @@ body {
     <div class="data-bar">
       <span class="data-status" id="dist4Status">未加载数据</span>
     </div>
+    <div class="scroll-hint">表格较宽，左右滑动查看全部号码</div>
     <div class="dist-container" id="dist4Container"></div>
   </div>
 
@@ -1656,6 +1661,7 @@ body {
     <div class="data-bar">
       <span class="data-status" id="dist10Status">未加载数据</span>
     </div>
+    <div class="scroll-hint">表格较宽，左右滑动查看全部号码</div>
     <div class="dist-container" id="dist10Container"></div>
   </div>
 
@@ -3269,6 +3275,12 @@ function switchTab(tab) {
     b.classList.toggle('active', tabName === tab);
   });
   
+  // 手机端标签栏为单行横滑，切换后让当前标签自动滚入可视区
+  const activeBtn = tabsContainer.querySelector('.tab-btn.active');
+  if (activeBtn && tabsContainer.scrollWidth > tabsContainer.clientWidth + 2) {
+    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
   document.getElementById('pickPanel').classList.toggle('active', tab === 'pick');
   document.getElementById('simPanel').classList.toggle('active', tab === 'sim');
   document.getElementById('trendPanel').classList.toggle('active', tab === 'trend');
