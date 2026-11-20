@@ -340,20 +340,321 @@ body {
   border-top: 1px solid #d0d0d0;
   flex-shrink: 0;
 }
+
+/* ============ 页内标签 ============ */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  border: none;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--fg-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all .2s;
+  font-family: inherit;
+}
+.tab-btn:hover { color: var(--fg-primary); transform: translateY(-1px); }
+.tab-btn.active {
+  background: linear-gradient(135deg, #e94560, #c62828);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(233,69,96,.35);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ============ 选号面板 ============ */
+.pick-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 18px 18px 10px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 18px;
+}
+.pick-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.pick-head h3 {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pick-head h3::before {
+  content: '';
+  width: 4px; height: 16px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.pick-sub { font-size: 12px; color: var(--fg-secondary); font-weight: 400; }
+
+.ratio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: var(--bg-dark);
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--fg-secondary);
+}
+.ratio-input {
+  width: 76px;
+  padding: 6px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  outline: none;
+  color: var(--fg-primary);
+  background: #fff;
+}
+.ratio-input:focus { border-color: var(--accent); }
+.chip {
+  border: 1px solid #e0e0e6;
+  background: #fff;
+  color: var(--fg-secondary);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+}
+.chip:hover { border-color: var(--gold); color: var(--gold); }
+.chip.active {
+  background: linear-gradient(135deg, var(--gold), #e6940a);
+  border-color: var(--gold);
+  color: #fff;
+}
+
+.zone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.zone-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  border-left: 4px solid var(--zcolor, var(--accent));
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, transform .2s;
+}
+.zone-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.zone-card h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.zone-card h4 .range { color: var(--fg-secondary); font-size: 12px; font-weight: 400; }
+.zone-count-ctrl { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.zone-count-ctrl button {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: var(--bg-light);
+  color: var(--fg-primary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+}
+.zone-count-ctrl button:hover { background: var(--accent); color: #fff; }
+.zone-count-ctrl .count-display {
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 26px;
+  text-align: center;
+  color: var(--gold);
+}
+.zone-balls { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.ball {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+  background: var(--bg-dark);
+  color: var(--fg-secondary);
+  border: 2px solid transparent;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,.06);
+  position: relative;
+  user-select: none;
+}
+.ball:hover { border-color: var(--zcolor, var(--accent)); color: var(--fg-primary); transform: scale(1.08); }
+.ball.selected {
+  background: var(--zcolor, var(--accent));
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 3px 10px rgba(233,69,96,.3);
+}
+.ball.ball-blue.selected {
+  background: linear-gradient(135deg, #4488ff, #2255dd);
+  box-shadow: 0 3px 10px rgba(34,85,221,.35);
+}
+.ball.fixed {
+  background: linear-gradient(135deg, var(--gold), #e6940a);
+  color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(240,165,0,.45);
+}
+.ball.fixed::after {
+  content: '胆';
+  position: absolute;
+  top: -7px; right: -7px;
+  font-size: 9px;
+  line-height: 1;
+  padding: 2px 3px;
+  border-radius: 4px;
+  background: var(--gold);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.zone-hint {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #ececf2;
+  font-size: 11px;
+  color: #9a9aae;
+}
+.zone-hint span:first-child { color: #e05a6a; }
+
+.pick-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.pick-actions select,
+.pick-actions input {
+  padding: 8px 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--fg-primary);
+  background: #fff;
+  outline: none;
+}
+.pick-actions input { width: 64px; text-align: center; }
+.pick-actions select:focus, .pick-actions input:focus { border-color: var(--accent); }
+.btn {
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+  box-shadow: var(--shadow-sm);
+}
+.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-primary { background: linear-gradient(135deg, #e94560, #c62828); color: #fff; }
+.btn-blue { background: linear-gradient(135deg, #1e90ff, #0d47a1); color: #fff; }
+.btn-gold { background: linear-gradient(135deg, var(--gold), #e6940a); color: #fff; }
+.btn-plain { background: var(--bg-light); color: var(--fg-primary); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+.pick-result { margin-top: 6px; }
+.pick-empty {
+  text-align: center;
+  color: var(--fg-secondary);
+  font-size: 13px;
+  padding: 24px 0;
+}
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--bg-dark);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.pick-row .idx { color: #aaa; font-size: 12px; min-width: 22px; }
+.mini-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px; height: 27px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: #e53935;
+}
+.mini-ball.blue { background: #1e88e5; margin-left: 4px; }
+.pick-row .ratio { color: var(--fg-secondary); font-size: 12px; }
+.pick-row .hit { color: var(--gold); font-weight: 700; font-size: 12px; }
+.pick-row .ops { margin-left: auto; display: flex; gap: 6px; }
+.pick-summary {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fff8e1, #fffde7);
+  border: 1px solid #ffe082;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #5a5a7a;
+}
+.pick-summary strong { color: #c62828; }
+@media (max-width: 640px) {
+  .zone-grid { grid-template-columns: 1fr; }
+  .pick-row .ops { margin-left: 0; }
+}
 </style>
 </head>
 <body>
 
 <div class="top-bar">
   <div>
-    <h1>双色球开奖分布图</h1>
-    <div class="sub">33选6+16选1 · 传统3区分布 · 走势分析</div>
+    <h1>双色球走势与选号</h1>
+    <div class="sub">33选6+16选1 · 三区选号 · 走势分析</div>
   </div>
 </div>
 
 <div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('pick')">智能选号</button>
+    <button class="tab-btn" onclick="switchTab('dist')">走势分布</button>
+  </div>
+
+  <div id="panelDist" class="tab-panel">
   <div class="data-bar">
-    <button class="btn-fetch" onclick="fetchData()">获取最新开奖数据</button>
+    <button class="btn-fetch" onclick="fetchData(null, true)">刷新最新开奖</button>
     <button class="btn-download" onclick="downloadDataTxt()">下载TXT</button>
     <span class="data-status" id="dataStatus">未加载数据</span>
   </div>
@@ -373,8 +674,57 @@ body {
   </div>
 
   <div class="dist-container" id="distContainer"></div>
+  </div><!-- /panelDist -->
+
+  <!-- ========== 选号面板 ========== -->
+  <div id="panelPick" class="tab-panel active">
+    <div class="pick-card">
+      <div class="pick-head">
+        <h3>分区选号 <span class="pick-sub">红球三区 · 蓝球不分区分（01-16 任意选）</span></h3>
+        <span class="data-status" id="pickStatus">—</span>
+      </div>
+
+      <div class="ratio-row">
+        <span>红球区比</span>
+        <input type="text" id="ratioInput" class="ratio-input" value="2:2:2" onchange="applyRatio(this.value, true)">
+        <button class="chip" data-ratio="2:2:2" onclick="applyRatio('2:2:2')">2:2:2</button>
+        <button class="chip" data-ratio="3:2:1" onclick="applyRatio('3:2:1')">3:2:1</button>
+        <button class="chip" data-ratio="2:3:1" onclick="applyRatio('2:3:1')">2:3:1</button>
+        <button class="chip" data-ratio="2:1:3" onclick="applyRatio('2:1:3')">2:1:3</button>
+        <button class="chip" data-ratio="1:2:3" onclick="applyRatio('1:2:3')">1:2:3</button>
+        <button class="chip" data-ratio="3:1:2" onclick="applyRatio('3:1:2')">3:1:2</button>
+        <button class="chip" data-ratio="1:3:2" onclick="applyRatio('1:3:2')">1:3:2</button>
+        <button class="chip" onclick="randomRatio()">随机区比</button>
+        <span style="margin-left:auto;font-size:12px;">双击红球 / 蓝球 = 设为胆码</span>
+      </div>
+
+      <div class="zone-grid" id="pickZoneGrid"></div>
+
+      <div class="pick-actions">
+        <select id="pickStrategy" onchange="renderPickGrid()">
+          <option value="balance">均衡权重（热+冷）</option>
+          <option value="hot">追热（近期高频）</option>
+          <option value="cold">补冷（长期遗漏）</option>
+          <option value="random">纯随机</option>
+        </select>
+        <input type="number" id="pickCount" value="5" min="1" max="50" title="生成注数">
+        <span style="font-size:13px;color:var(--fg-secondary);">注</span>
+        <button class="btn btn-primary" onclick="generatePick()">生成号码</button>
+        <button class="btn btn-gold" onclick="generatePick(true)">机选一注</button>
+        <button class="btn btn-plain" onclick="clearPick()">清空</button>
+        <button class="btn btn-blue" onclick="downloadPick()">下载TXT</button>
+        <button class="btn btn-blue" onclick="verifyPick()">历史验算</button>
+      </div>
+
+      <div class="pick-result" id="pickResult">
+        <div class="pick-empty">设定区比后点「生成号码」，红球按三区分配，蓝球从 01-16 中抽取（不分区）</div>
+      </div>
+      <div id="pickSummary"></div>
+    </div>
+  </div><!-- /panelPick -->
 </div>
 
+<script src="data.js"></script>
 <script>
 var drawData = [];
 
@@ -433,8 +783,8 @@ function downloadDataTxt() {
   URL.revokeObjectURL(link.href);
 }
 
-function fetchData(limit) {
-  limit = limit || parseInt(document.getElementById('recentN').value) || 30;
+function fetchData(limit, forceFresh) {
+  limit = parseInt(limit || (document.getElementById('recentN') || {}).value, 10) || 30;
   if (limit < 1) limit = 1;
   if (limit > 100) limit = 100;
   document.getElementById('recentN').value = limit;
@@ -443,76 +793,35 @@ function fetchData(limit) {
   statusEl.textContent = '正在获取最新开奖数据...';
   statusEl.className = 'data-status';
 
-  var url = 'https://api.huiniao.top/interface/home/lotteryHistory?type=ssq&page=1&limit=' + limit;
+  return LotteryData.load('ssq', { fresh: !!forceFresh })
+    .then(function (res) {
+      drawData = res.draws.slice(0, Math.max(limit, 30)).map(function (d) {
+        var reds = (d.nums || []).slice().sort(function (a, b) { return a - b; });
+        var blues = (d.extra || []).slice(0, 1);
+        return {
+          period: String(d.period),
+          date: d.date || '',
+          reds: reds,
+          blues: blues,
+          zoneCounts: getRedZoneCounts(reds)
+        };
+      }).filter(function (d) { return d.reds.length >= 6; });
 
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(json) {
-      if (json.code !== 1 && json.code !== 200 && json.code !== 0) {
-        throw new Error(json.info || '接口返回异常');
-      }
+      if (drawData.length === 0) throw new Error('有效数据不足');
 
-      var dataObj = json.data || {};
-      var lastInfo = dataObj.last || null;
-      var listData = dataObj.data || dataObj;
-      var list = listData.list || listData;
-
-      if (!Array.isArray(list) || list.length === 0) {
-        throw new Error('返回数据为空');
-      }
-
-      var results = [];
-      list.forEach(function(item) {
-        var period = String(item.code || item.qihao || item.issue || '');
-        var date = String(item.day || item.date || item.open_time || '');
-        var parsed = parseItemNums(item);
-
-        if (parsed.reds.length < 6 || !period) return;
-
-        results.push({
-          period: period,
-          date: date,
-          reds: parsed.reds,
-          blues: parsed.blues,
-          zoneCounts: getRedZoneCounts(parsed.reds)
-        });
-      });
-
-      if (lastInfo) {
-        var lastPeriod = String(lastInfo.code || lastInfo.qihao || '');
-        var lastParsed = parseItemNums(lastInfo);
-        if (lastPeriod && lastParsed.reds.length >= 6) {
-          var alreadyHas = results.some(function(r) { return r.period === lastPeriod; });
-          if (!alreadyHas) {
-            results.unshift({
-              period: lastPeriod,
-              date: String(lastInfo.day || lastInfo.date || lastInfo.open_time || ''),
-              reds: lastParsed.reds,
-              blues: lastParsed.blues,
-              zoneCounts: getRedZoneCounts(lastParsed.reds)
-            });
-          }
-        }
-      }
-
-      if (results.length === 0) throw new Error('有效数据不足');
-
-      results.sort(function(a, b) {
-        var pa = a.period.replace(/\D/g, '');
-        var pb = b.period.replace(/\D/g, '');
-        return pb.localeCompare(pa);
-      });
-
-      drawData = results;
-      statusEl.textContent = '已加载 ' + drawData.length + ' 期数据';
+      statusEl.textContent = '已更新至 ' + res.latest + ' 期（' + (res.latestDate || '—') + '）· 共 ' + drawData.length + ' 期';
       statusEl.className = 'data-status ok';
 
       renderLatestDraw();
       buildDistribution();
+      updatePickStatus();
+      renderPickGrid();   // 数据到位后重绘分区卡片（带上热号/冷号统计）
+      return drawData;
     })
-    .catch(function(err) {
+    .catch(function (err) {
       statusEl.textContent = '获取失败: ' + (err.message || '请稍后重试');
       statusEl.className = 'data-status';
+      throw err;
     });
 }
 
@@ -758,7 +1067,543 @@ function buildDistribution() {
   container.appendChild(main);
 }
 
-fetchData();
+// ==================== 页内标签 ====================
+function switchTab(tab) {
+  var btns = document.querySelectorAll('.tabs .tab-btn');
+  btns.forEach(function (b) {
+    var m = (b.getAttribute('onclick') || '').match(/switchTab\('(.+?)'\)/);
+    b.classList.toggle('active', !!m && m[1] === tab);
+  });
+  document.getElementById('panelDist').classList.toggle('active', tab === 'dist');
+  document.getElementById('panelPick').classList.toggle('active', tab === 'pick');
+  if (tab === 'dist' && drawData.length > 0) buildDistribution();
+}
+
+// ==================== 分区选号 ====================
+var PICK_ZONES = [
+  { label: '红球一区', range: [1, 11], color: '#e94560' },
+  { label: '红球二区', range: [12, 22], color: '#ff6348' },
+  { label: '红球三区', range: [23, 33], color: '#ffa502' }
+];
+var PICK_BLUE = { label: '蓝球区', range: [1, 16], color: '#1e88ff' };
+
+var pickState = {
+  counts: [2, 2, 2],
+  sel: new Set(),     // 自选红球
+  dan: new Set(),     // 红球胆码
+  blues: new Set(),   // 蓝球自选
+  blueDan: new Set(), // 蓝球胆码（固定蓝）
+  bets: []            // [{reds:[], blue:int}]
+};
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function pickStats() {
+  var win = Math.min(60, drawData.length);
+  var redFreq = {}, blueFreq = {}, redMiss = {}, blueMiss = {};
+  for (var n = 1; n <= 33; n++) { redFreq[n] = 0; redMiss[n] = win; }
+  for (var n2 = 1; n2 <= 16; n2++) { blueFreq[n2] = 0; blueMiss[n2] = win; }
+  for (var i = 0; i < win; i++) {
+    var d = drawData[i];
+    (d.reds || []).forEach(function (x) {
+      redFreq[x] = (redFreq[x] || 0) + 1;
+      if (redMiss[x] === win) redMiss[x] = i;
+    });
+    (d.blues || []).forEach(function (x) {
+      blueFreq[x] = (blueFreq[x] || 0) + 1;
+      if (blueMiss[x] === win) blueMiss[x] = i;
+    });
+  }
+  var maxRed = 1, maxBlue = 1;
+  for (var a = 1; a <= 33; a++) maxRed = Math.max(maxRed, redFreq[a]);
+  for (var b = 1; b <= 16; b++) maxBlue = Math.max(maxBlue, blueFreq[b]);
+  return { win: win, redFreq: redFreq, blueFreq: blueFreq, redMiss: redMiss, blueMiss: blueMiss, maxRed: maxRed, maxBlue: maxBlue };
+}
+
+function weightOf(freq, miss, maxFreq, strategy, win) {
+  var hot = maxFreq ? freq / maxFreq : 0;
+  var cold = Math.min(miss, 20) / 20;
+  if (strategy === 'hot') return 0.35 + 1.5 * hot;
+  if (strategy === 'cold') return 0.35 + 1.5 * cold;
+  if (strategy === 'random') return 1;
+  return 0.45 + 0.85 * hot + 0.75 * cold;
+}
+
+function weightedPick(pool, k, weightFn) {
+  var picked = [];
+  var left = pool.slice();
+  while (picked.length < k && left.length > 0) {
+    var weights = left.map(weightFn);
+    var total = weights.reduce(function (s, w) { return s + w; }, 0);
+    var r = Math.random() * total;
+    var idx = 0;
+    for (var i = 0; i < left.length; i++) {
+      r -= weights[i];
+      if (r <= 0) { idx = i; break; }
+      idx = i;
+    }
+    picked.push(left[idx]);
+    left.splice(idx, 1);
+  }
+  return picked;
+}
+
+function rangeNums(range) {
+  var out = [];
+  for (var n = range[0]; n <= range[1]; n++) out.push(n);
+  return out;
+}
+
+function zoneHintHtml(nums, freqMap, missMap, win) {
+  if (!win) return '';
+  var byFreq = nums.slice().sort(function (a, b) { return (freqMap[b] || 0) - (freqMap[a] || 0); });
+  var hot = byFreq.slice(0, 3);
+  var byMiss = nums.filter(function (n) { return hot.indexOf(n) === -1; })
+    .sort(function (a, b) { return (missMap[b] || 0) - (missMap[a] || 0); });
+  return '<div class="zone-hint">' +
+    '<span>热号 ' + hot.map(pad).join(' ') + '</span>' +
+    '<span>冷号 ' + byMiss.slice(0, 3).map(pad).join(' ') + '</span>' +
+    '<span>近 ' + win + ' 期统计</span>' +
+  '</div>';
+}
+
+function renderPickGrid() {
+  var grid = document.getElementById('pickZoneGrid');
+  if (!grid) return;
+  var stats = pickStats();
+  var strategy = document.getElementById('pickStrategy').value;
+  var showFreq = stats.win > 0;
+  grid.innerHTML = '';
+
+  PICK_ZONES.forEach(function (zone, idx) {
+    var card = document.createElement('div');
+    card.className = 'zone-card';
+    card.style.setProperty('--zcolor', zone.color);
+
+    var nums = rangeNums(zone.range);
+    var balls = nums.map(function (n) {
+      var cls = 'ball';
+      if (pickState.dan.has(n)) cls += ' fixed';
+      else if (pickState.sel.has(n)) cls += ' selected';
+      return '<div class="' + cls + '" data-num="' + n + '" onclick="togglePick(' + n + ')" ondblclick="togglePickDan(' + n + ')" title="' + pad(n) + (showFreq ? ' · 近' + stats.win + ' 期出现 ' + stats.redFreq[n] + ' 次，遗漏 ' + stats.redMiss[n] + ' 期' : '') + '">' + pad(n) + '</div>';
+    }).join('');
+
+    card.innerHTML =
+      '<h4><span style="color:' + zone.color + '">' + zone.label + '</span>' +
+        '<span class="range">' + pad(zone.range[0]) + '-' + pad(zone.range[1]) + '</span></h4>' +
+      '<div class="zone-count-ctrl">' +
+        '<button onclick="changeZoneCount(' + idx + ',-1)">−</button>' +
+        '<span class="count-display" id="pcount-' + idx + '">' + pickState.counts[idx] + '</span>' +
+        '<button onclick="changeZoneCount(' + idx + ',1)">+</button>' +
+        '<span style="font-size:12px;color:var(--fg-secondary);">个</span>' +
+      '</div>' +
+      '<div class="zone-balls">' + balls + '</div>' +
+      zoneHintHtml(nums, stats.redFreq, stats.redMiss, stats.win);
+    grid.appendChild(card);
+  });
+
+  // 蓝球：不分区，单独一张卡
+  var blueCard = document.createElement('div');
+  blueCard.className = 'zone-card';
+  blueCard.style.setProperty('--zcolor', PICK_BLUE.color);
+  var blueBalls = rangeNums(PICK_BLUE.range).map(function (n) {
+    var cls = 'ball ball-blue';
+    if (pickState.blueDan.has(n)) cls += ' fixed';
+    else if (pickState.blues.has(n)) cls += ' selected';
+    return '<div class="' + cls + '" data-blue="' + n + '" onclick="togglePickBlue(' + n + ')" ondblclick="togglePickBlueDan(' + n + ')" title="' + pad(n) + (showFreq ? ' · 近' + stats.win + ' 期出现 ' + stats.blueFreq[n] + ' 次，遗漏 ' + stats.blueMiss[n] + ' 期' : '') + '">' + pad(n) + '</div>';
+  }).join('');
+  blueCard.innerHTML =
+    '<h4><span style="color:' + PICK_BLUE.color + '">蓝球区（不分区）</span>' +
+      '<span class="range">01-16</span></h4>' +
+    '<div style="font-size:12px;color:var(--fg-secondary);margin-bottom:10px;">可多选；不选则从 01-16 全号池按权重抽取。双击 = 定蓝（所有注都用这个蓝球）</div>' +
+    '<div class="zone-balls">' + blueBalls + '</div>' +
+    zoneHintHtml(rangeNums(PICK_BLUE.range), stats.blueFreq, stats.blueMiss, stats.win);
+  grid.appendChild(blueCard);
+}
+
+function refreshBallState() {
+  document.querySelectorAll('#pickZoneGrid .ball').forEach(function (el) {
+    var n = parseInt(el.getAttribute('data-num'), 10);
+    var b = parseInt(el.getAttribute('data-blue'), 10);
+    if (!isNaN(n)) {
+      el.classList.toggle('fixed', pickState.dan.has(n));
+      el.classList.toggle('selected', !pickState.dan.has(n) && pickState.sel.has(n));
+    } else if (!isNaN(b)) {
+      el.classList.toggle('fixed', pickState.blueDan.has(b));
+      el.classList.toggle('selected', !pickState.blueDan.has(b) && pickState.blues.has(b));
+    }
+  });
+}
+
+function togglePick(n) {
+  if (pickState.dan.has(n)) { pickState.dan.delete(n); }
+  else if (pickState.sel.has(n)) { pickState.sel.delete(n); }
+  else { pickState.sel.add(n); }
+  refreshBallState();
+}
+
+function togglePickDan(n) {
+  if (pickState.dan.has(n)) { pickState.dan.delete(n); }
+  else {
+    pickState.dan.add(n);
+    pickState.sel.delete(n);
+    // 胆码自动保证所在区至少留出位置
+    var zi = PICK_ZONES.findIndex(function (z) { return n >= z.range[0] && n <= z.range[1]; });
+    if (zi >= 0) {
+      var danInZone = countDanInZone(zi);
+      if (pickState.counts[zi] < danInZone) {
+        pickState.counts[zi] = danInZone;
+        syncRatioInput();
+        var el = document.getElementById('pcount-' + zi);
+        if (el) el.textContent = pickState.counts[zi];
+      }
+    }
+  }
+  refreshBallState();
+}
+
+function togglePickBlue(n) {
+  if (pickState.blueDan.has(n)) { pickState.blueDan.delete(n); }
+  else if (pickState.blues.has(n)) { pickState.blues.delete(n); }
+  else { pickState.blues.add(n); }
+  refreshBallState();
+}
+
+function togglePickBlueDan(n) {
+  if (pickState.blueDan.has(n)) { pickState.blueDan.delete(n); }
+  else { pickState.blueDan.add(n); pickState.blues.delete(n); }
+  refreshBallState();
+}
+
+function countDanInZone(zi) {
+  var z = PICK_ZONES[zi];
+  var c = 0;
+  pickState.dan.forEach(function (n) { if (n >= z.range[0] && n <= z.range[1]) c++; });
+  return c;
+}
+
+function changeZoneCount(idx, delta) {
+  var v = pickState.counts[idx] + delta;
+  v = Math.max(countDanInZone(idx), Math.min(6, v));
+  pickState.counts[idx] = v;
+  document.getElementById('pcount-' + idx).textContent = v;
+  syncRatioInput();
+}
+
+function syncRatioInput() {
+  document.getElementById('ratioInput').value = pickState.counts.join(':');
+  var sum = pickState.counts.reduce(function (a, b) { return a + b; }, 0);
+  document.querySelectorAll('.chip[data-ratio]').forEach(function (c) {
+    c.classList.toggle('active', c.getAttribute('data-ratio') === pickState.counts.join(':'));
+  });
+  var hint = document.getElementById('pickRatioHint');
+  if (hint) hint.textContent = sum === 6 ? '' : '区比合计需等于 6（当前 ' + sum + '）';
+  return sum;
+}
+
+function applyRatio(str, fromInput) {
+  var parts = String(str).split(/[:：\s,，]+/).filter(function (x) { return x !== ''; });
+  if (parts.length !== 3) { alert('区比格式应为 2:2:2 这样的三组数字'); return; }
+  var arr = parts.map(function (x) { return parseInt(x, 10); });
+  if (arr.some(function (x) { return isNaN(x) || x < 0 || x > 6; })) {
+    alert('每区个数需在 0-6 之间');
+    return;
+  }
+  if (arr.reduce(function (a, b) { return a + b; }, 0) !== 6) {
+    alert('三区个数合计必须等于 6（当前 ' + arr.join(':') + '）');
+    return;
+  }
+  for (var i = 0; i < 3; i++) {
+    if (arr[i] < countDanInZone(i)) {
+      alert('第' + (i + 1) + '区已有 ' + countDanInZone(i) + ' 个胆码，该区个数不能小于它');
+      return;
+    }
+  }
+  pickState.counts = arr;
+  for (var j = 0; j < 3; j++) {
+    var el = document.getElementById('pcount-' + j);
+    if (el) el.textContent = arr[j];
+  }
+  syncRatioInput();
+  if (fromInput) document.getElementById('ratioInput').value = arr.join(':');
+}
+
+function randomRatio() {
+  // 双色球常见形态：三区都有号，且不会过于集中
+  var options = [[2,2,2],[3,2,1],[2,3,1],[2,1,3],[1,2,3],[3,1,2],[1,3,2],[4,1,1],[1,4,1],[1,1,4]];
+  var pick;
+  do {
+    pick = options[Math.floor(Math.random() * options.length)];
+    var ok = true;
+    for (var i = 0; i < 3; i++) if (pick[i] < countDanInZone(i)) ok = false;
+  } while (!ok);
+  pickState.counts = pick.slice();
+  for (var j = 0; j < 3; j++) {
+    var el = document.getElementById('pcount-' + j);
+    if (el) el.textContent = pick[j];
+  }
+  syncRatioInput();
+}
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function generatePick(oneBet) {
+  if (drawData.length === 0) {
+    alert('还没有开奖数据，先刷新一次数据再生成（不影响纯随机选号，但无法显示遗漏）');
+  }
+  var sum = pickState.counts.reduce(function (a, b) { return a + b; }, 0);
+  if (sum !== 6) { alert('红球区比合计必须等于 6（当前 ' + pickState.counts.join(':') + '）'); return; }
+
+  var strategy = document.getElementById('pickStrategy').value;
+  var total = oneBet ? 1 : clamp(parseInt(document.getElementById('pickCount').value, 10) || 5, 1, 50);
+  document.getElementById('pickCount').value = total;
+
+  var stats = pickStats();
+  var blueDanPool = Array.from(pickState.blueDan).sort(function (a, b) { return a - b; });
+  var blueSelPool = Array.from(pickState.blues).sort(function (a, b) { return a - b; });
+  var bluePool = blueDanPool.length ? blueDanPool : (blueSelPool.length ? blueSelPool : null);
+
+  var seen = {};
+  pickState.bets.forEach(function (b) { seen[b.reds.join(',') + '|' + b.blue] = true; });
+
+  var bets = [];
+  var guard = 0;
+  while (bets.length < total && guard < total * 60) {
+    guard++;
+    var reds = new Set();
+
+    for (var zi = 0; zi < PICK_ZONES.length; zi++) {
+      var zone = PICK_ZONES[zi];
+      var need = pickState.counts[zi];
+      if (need <= 0) continue;
+
+      var danInZone = [];
+      for (var n = zone.range[0]; n <= zone.range[1]; n++) {
+        if (pickState.dan.has(n)) danInZone.push(n);
+      }
+      danInZone.forEach(function (x) { reds.add(x); });
+      var rest = need - danInZone.length;
+      if (rest <= 0) continue;
+
+      var selfInZone = [];
+      var poolInZone = [];
+      for (var m = zone.range[0]; m <= zone.range[1]; m++) {
+        if (reds.has(m)) continue;
+        if (pickState.sel.has(m)) selfInZone.push(m);
+        else poolInZone.push(m);
+      }
+
+      var wfn = function (x) {
+        return weightOf(stats.redFreq[x], stats.redMiss[x], stats.maxRed, strategy, stats.win);
+      };
+
+      if (selfInZone.length >= rest) {
+        weightedPick(selfInZone, rest, wfn).forEach(function (x) { reds.add(x); });
+      } else {
+        selfInZone.forEach(function (x) { reds.add(x); });
+        var more = rest - selfInZone.length;
+        weightedPick(poolInZone, more, wfn).forEach(function (x) { reds.add(x); });
+      }
+    }
+
+    if (reds.size !== 6) continue;
+
+    var blue;
+    if (bluePool) {
+      blue = bluePool[bets.length % bluePool.length];
+    } else {
+      var pool = rangeNums([1, 16]);
+      blue = weightedPick(pool, 1, function (x) {
+        return weightOf(stats.blueFreq[x], stats.blueMiss[x], stats.maxBlue, strategy, stats.win);
+      })[0];
+    }
+
+    var redArr = Array.from(reds).sort(function (a, b) { return a - b; });
+    var key = redArr.join(',') + '|' + blue;
+    if (seen[key]) continue;
+    seen[key] = true;
+    bets.push({ reds: redArr, blue: blue });
+  }
+
+  if (bets.length === 0) { alert('未能生成不重复的组合，请减少注数或增加号码池'); return; }
+  pickState.bets = bets;
+  renderPickResults();
+}
+
+function pickZoneRatio(reds) {
+  return PICK_ZONES.map(function (z) {
+    return reds.filter(function (n) { return n >= z.range[0] && n <= z.range[1]; }).length;
+  }).join(':');
+}
+
+function prizeOf(redHits, blueHit) {
+  if (redHits === 6 && blueHit) return { level: 1, name: '一等奖', money: 5000000 };
+  if (redHits === 6) return { level: 2, name: '二等奖', money: 150000 };
+  if (redHits === 5 && blueHit) return { level: 3, name: '三等奖', money: 3000 };
+  if (redHits === 5 || (redHits === 4 && blueHit)) return { level: 4, name: '四等奖', money: 200 };
+  if (redHits === 4 || (redHits === 3 && blueHit)) return { level: 5, name: '五等奖', money: 10 };
+  if (blueHit) return { level: 6, name: '六等奖', money: 5 };
+  return null;
+}
+
+function renderPickResults() {
+  var box = document.getElementById('pickResult');
+  var sumBox = document.getElementById('pickSummary');
+  if (!box) return;
+  if (!pickState.bets.length) {
+    box.innerHTML = '<div class="pick-empty">设定区比后点「生成号码」，红球按三区分配，蓝球从 01-16 中抽取（不分区）</div>';
+    if (sumBox) sumBox.innerHTML = '';
+    return;
+  }
+
+  var latest = drawData[0] || null;
+  var html = '';
+  pickState.bets.forEach(function (bet, i) {
+    var hitText = '';
+    if (latest) {
+      var rh = bet.reds.filter(function (n) { return latest.reds.indexOf(n) !== -1; }).length;
+      var bh = latest.blues.indexOf(bet.blue) !== -1;
+      var p = prizeOf(rh, bh);
+      hitText = '<span class="hit">最新期命中 ' + rh + '+' + (bh ? 1 : 0) + (p ? ' · ' + p.name : '') + '</span>';
+    }
+    html +=
+      '<div class="pick-row">' +
+        '<span class="idx">' + (i + 1) + '</span>' +
+        bet.reds.map(function (n) { return '<span class="mini-ball">' + pad(n) + '</span>'; }).join('') +
+        '<span class="mini-ball blue">' + pad(bet.blue) + '</span>' +
+        '<span class="ratio">区比 ' + pickZoneRatio(bet.reds) + '</span>' +
+        hitText +
+        '<span class="ops">' +
+          '<button class="btn btn-plain btn-sm" onclick="copyOneBet(' + i + ')">复制</button>' +
+          '<button class="btn btn-plain btn-sm" onclick="removeOneBet(' + i + ')">删除</button>' +
+        '</span>' +
+      '</div>';
+  });
+  box.innerHTML = html;
+
+  if (sumBox) {
+    var count = pickState.bets.length;
+    sumBox.className = 'pick-summary';
+    sumBox.innerHTML = '本期共 <strong>' + count + '</strong> 注，投注金额 <strong>' + (count * 2) + '</strong> 元' +
+      (latest ? '；最新一期 <strong>' + latest.period + '</strong> 开奖号码：红 ' + latest.reds.map(pad).join(' ') + ' + 蓝 ' + latest.blues.map(pad).join(' ') : '');
+  }
+}
+
+function copyOneBet(i) {
+  var bet = pickState.bets[i];
+  if (!bet) return;
+  copyText(bet.reds.map(pad).join(' ') + ' + ' + pad(bet.blue), '第 ' + (i + 1) + ' 注已复制');
+}
+
+function removeOneBet(i) {
+  pickState.bets.splice(i, 1);
+  renderPickResults();
+}
+
+function copyText(text, msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { alert(msg); }, function () { prompt('复制失败，手动复制：', text); });
+  } else {
+    prompt('手动复制：', text);
+  }
+}
+
+function clearPick() {
+  pickState.sel.clear();
+  pickState.dan.clear();
+  pickState.blues.clear();
+  pickState.blueDan.clear();
+  pickState.bets = [];
+  renderPickGrid();
+  renderPickResults();
+  document.getElementById('pickSummary').innerHTML = '';
+}
+
+function downloadPick() {
+  if (!pickState.bets.length) { alert('还没有生成号码'); return; }
+  var lines = ['双色球选号 ' + new Date().toLocaleString()];
+  lines.push('注数\t红球\t蓝球\t区比');
+  pickState.bets.forEach(function (b, i) {
+    lines.push((i + 1) + '\t' + b.reds.map(pad).join(' ') + '\t' + pad(b.blue) + '\t' + pickZoneRatio(b.reds));
+  });
+  var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  var a = document.createElement('a');
+  a.download = '双色球选号.txt';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function verifyPick() {
+  if (!pickState.bets.length) { alert('请先生成号码'); return; }
+  if (drawData.length === 0) { alert('还没有开奖数据，无法验算'); return; }
+
+  var periods = Math.min(30, drawData.length);
+  var cost = pickState.bets.length * periods * 2;
+  var totalPrize = 0;
+  var winBets = 0;
+  var levelCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+  var detail = [];
+
+  pickState.bets.forEach(function (bet) {
+    var prize = 0;
+    var hits = [];
+    for (var i = 0; i < periods; i++) {
+      var d = drawData[i];
+      var rh = bet.reds.filter(function (n) { return d.reds.indexOf(n) !== -1; }).length;
+      var bh = d.blues.indexOf(bet.blue) !== -1;
+      var p = prizeOf(rh, bh);
+      if (p) {
+        prize += p.money;
+        levelCount[p.level]++;
+        hits.push(d.period + '(' + rh + '+' + (bh ? 1 : 0) + ' ' + p.name + ')');
+      }
+    }
+    if (prize > 0) winBets++;
+    totalPrize += prize;
+    detail.push({ bet: bet, prize: prize, hits: hits });
+  });
+
+  var html = '<div class="pick-summary">' +
+    '近 <strong>' + periods + '</strong> 期验算：投入 <strong>' + cost + '</strong> 元，中奖 <strong>' + totalPrize.toFixed(0) + '</strong> 元，' +
+    '盈亏 <strong style="color:' + (totalPrize - cost >= 0 ? '#2e7d32' : '#c62828') + '">' + (totalPrize - cost).toFixed(0) + '</strong> 元<br>' +
+    '中奖注数 <strong>' + winBets + '/' + pickState.bets.length + '</strong>　' +
+    ['一', '二', '三', '四', '五', '六'].map(function (name, i) {
+      return name + '等奖 ' + levelCount[i + 1];
+    }).join('　') +
+    '</div>' +
+    detail.map(function (d, i) {
+      return '<div class="pick-row">' +
+        '<span class="idx">' + (i + 1) + '</span>' +
+        d.bet.reds.map(function (n) { return '<span class="mini-ball">' + pad(n) + '</span>'; }).join('') +
+        '<span class="mini-ball blue">' + pad(d.bet.blue) + '</span>' +
+        '<span class="ratio">中奖 ' + d.prize.toFixed(0) + ' 元</span>' +
+        '<span class="ratio">' + (d.hits.length ? d.hits.join('，') : '未中奖') + '</span>' +
+      '</div>';
+    }).join('');
+  document.getElementById('pickSummary').innerHTML = html;
+}
+
+function updatePickStatus() {
+  var el = document.getElementById('pickStatus');
+  if (!el) return;
+  if (drawData.length === 0) {
+    el.textContent = '开奖数据未加载';
+    el.className = 'data-status';
+  } else {
+    var d = drawData[0];
+    el.textContent = '数据截止 ' + d.period + '（' + (d.date || '—') + '）· 共 ' + drawData.length + ' 期';
+    el.className = 'data-status ok';
+  }
+}
+
+
+// ==================== 初始化 ====================
+renderPickGrid();
+syncRatioInput();
+updatePickStatus();
+fetchData().catch(function () { /* 状态已在 fetchData 内提示 */ });
+
 </script>
 </body>
 </html>

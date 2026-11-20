@@ -353,7 +353,7 @@ body {
 
 <div class="container">
   <div class="data-bar">
-    <button class="btn-fetch" onclick="fetchData()">获取最新开奖数据</button>
+    <button class="btn-fetch" onclick="fetchData(null, true)">刷新最新开奖</button>
     <button class="btn-download" onclick="downloadDataTxt()">下载TXT</button>
     <span class="data-status" id="dataStatus">未加载数据</span>
   </div>
@@ -375,6 +375,7 @@ body {
   <div class="dist-container" id="distContainer"></div>
 </div>
 
+<script src="data.js"></script>
 <script>
 var drawData = [];
 
@@ -433,8 +434,8 @@ function downloadDataTxt() {
   URL.revokeObjectURL(link.href);
 }
 
-function fetchData(limit) {
-  limit = limit || parseInt(document.getElementById('recentN').value) || 30;
+function fetchData(limit, forceFresh) {
+  limit = parseInt(limit || (document.getElementById('recentN') || {}).value, 10) || 30;
   if (limit < 1) limit = 1;
   if (limit > 100) limit = 100;
   document.getElementById('recentN').value = limit;
@@ -443,76 +444,33 @@ function fetchData(limit) {
   statusEl.textContent = '正在获取最新开奖数据...';
   statusEl.className = 'data-status';
 
-  var url = 'https://api.huiniao.top/interface/home/lotteryHistory?type=dlt&page=1&limit=' + limit;
+  return LotteryData.load('dlt', { fresh: !!forceFresh })
+    .then(function(res) {
+      drawData = res.draws.slice(0, Math.max(limit, 30)).map(function(d) {
+        var reds = (d.nums || []).slice().sort(function(a, b) { return a - b; });
+        var blues = (d.extra || []).slice().sort(function(a, b) { return a - b; });
+        return {
+          period: String(d.period),
+          date: d.date || '',
+          reds: reds,
+          blues: blues,
+          zoneCounts: getRedZoneCounts(reds)
+        };
+      }).filter(function(d) { return d.reds.length >= 5; });
 
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(json) {
-      if (json.code !== 1 && json.code !== 200 && json.code !== 0) {
-        throw new Error(json.info || '接口返回异常');
-      }
+      if (drawData.length === 0) throw new Error('有效数据不足');
 
-      var dataObj = json.data || {};
-      var lastInfo = dataObj.last || null;
-      var listData = dataObj.data || dataObj;
-      var list = listData.list || listData;
-
-      if (!Array.isArray(list) || list.length === 0) {
-        throw new Error('返回数据为空');
-      }
-
-      var results = [];
-      list.forEach(function(item) {
-        var period = String(item.code || item.qihao || item.issue || '');
-        var date = String(item.day || item.date || item.open_time || '');
-        var parsed = parseItemNums(item);
-
-        if (parsed.reds.length < 5 || !period) return;
-
-        results.push({
-          period: period,
-          date: date,
-          reds: parsed.reds,
-          blues: parsed.blues,
-          zoneCounts: getRedZoneCounts(parsed.reds)
-        });
-      });
-
-      if (lastInfo) {
-        var lastPeriod = String(lastInfo.code || lastInfo.qihao || '');
-        var lastParsed = parseItemNums(lastInfo);
-        if (lastPeriod && lastParsed.reds.length >= 5) {
-          var alreadyHas = results.some(function(r) { return r.period === lastPeriod; });
-          if (!alreadyHas) {
-            results.unshift({
-              period: lastPeriod,
-              date: String(lastInfo.day || lastInfo.date || lastInfo.open_time || ''),
-              reds: lastParsed.reds,
-              blues: lastParsed.blues,
-              zoneCounts: getRedZoneCounts(lastParsed.reds)
-            });
-          }
-        }
-      }
-
-      if (results.length === 0) throw new Error('有效数据不足');
-
-      results.sort(function(a, b) {
-        var pa = a.period.replace(/\D/g, '');
-        var pb = b.period.replace(/\D/g, '');
-        return pb.localeCompare(pa);
-      });
-
-      drawData = results;
-      statusEl.textContent = '已加载 ' + drawData.length + ' 期数据';
+      statusEl.textContent = '已更新至 ' + res.latest + ' 期（' + (res.latestDate || '—') + '）· 共 ' + drawData.length + ' 期';
       statusEl.className = 'data-status ok';
 
       renderLatestDraw();
       buildDistribution();
+      return drawData;
     })
     .catch(function(err) {
       statusEl.textContent = '获取失败: ' + (err.message || '请稍后重试');
       statusEl.className = 'data-status';
+      throw err;
     });
 }
 
@@ -758,7 +716,7 @@ function buildDistribution() {
   container.appendChild(main);
 }
 
-fetchData();
+fetchData().catch(function () { /* 状态已提示 */ });
 </script>
 </body>
 </html>
