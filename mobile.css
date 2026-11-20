@@ -112,8 +112,33 @@ button, .tab-btn, .ball, .chip, a, select, .mini-ball {
     max-height: none !important;
     -webkit-overflow-scrolling: touch;
   }
-  .dist-period-col { position: sticky; left: 0; z-index: 3; box-shadow: 2px 0 0 #2196f3; }
-  .trend-period-col { position: sticky; left: 0; z-index: 3; }
+  /* 左侧固定组：期号列吸在 0，分区统计列吸在期号列右侧（宽度由 mobile.js 实测写入 --dist-pw） */
+  .dist-period-col {
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    align-self: flex-start;
+    background: #fff;
+    box-shadow: 3px 0 6px rgba(0, 0, 0, .10);
+  }
+  .dist-stat-col {
+    position: sticky;
+    left: var(--dist-pw, 66px);
+    z-index: 5;
+    align-self: flex-start;
+    background: #fff;
+    box-shadow: 3px 0 6px rgba(0, 0, 0, .10);
+  }
+  /* 期号列别被通用缩列规则压扁：序 + 7 位期号至少要放得下 */
+  .dist-period-col .dist-table tr > *:nth-child(2) {
+    width: 46px;
+    min-width: 46px;
+  }
+  .dist-period-col .dist-table tr > *:nth-child(1) {
+    width: 18px;
+    min-width: 18px;
+  }
+  .trend-period-col { position: sticky; left: 0; z-index: 6; }
   .scroll-hint { display: flex; }
 
   /* ==================== 页面通用卡片 ==================== */
@@ -307,6 +332,33 @@ button, .tab-btn, .ball, .chip, a, select, .mini-ball {
   body.page-klb .sim-batch-apply { flex: 0 0 auto; min-height: 42px; padding: 9px 14px; }
   body.page-klb .sim-batch-label { font-size: 12px; }
   body.page-klb .sim-batch-note { display: none; }
+
+  /* ---------- 分布图：分区统计列最多 10 列，压窄以免把号码挤出屏幕 ---------- */
+  body.page-klb .dist-stat-col .dist-table th,
+  body.page-klb .dist-stat-col .dist-table td {
+    width: 17px;
+    min-width: 17px;
+    font-size: 8px;
+  }
+  body.page-klb .dist-stat-col .dist-stat-ball {
+    width: 15px;
+    height: 15px;
+    font-size: 8px;
+  }
+  /* 期号列里的预测行按钮文字太长会把整列撑宽 15px，手机上换短文案 */
+  body.page-klb .dist-period-col .btn-icon {
+    padding: 6px 2px !important;
+    font-size: 0 !important;
+    line-height: 1.5;
+  }
+  body.page-klb .dist-period-col button[onclick="distAddPredRow()"]::after {
+    content: '+ 预测行';
+    font-size: 10px;
+  }
+  body.page-klb .dist-period-col button[onclick="distClearPred()"]::after {
+    content: '清空预测';
+    font-size: 10px;
+  }
 
   /* ---------- 底部操作：智能选号独占一行 ---------- */
   body.page-klb .action-bar {
