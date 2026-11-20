@@ -255,13 +255,38 @@ button, .tab-btn, .ball, .chip, a, select, .mini-ball {
   }
   body.page-ssq .pick-actions .btn-gold { order: 5; }
   body.page-ssq .btn-verify-pick { order: 6; }
-  body.page-ssq .btn-dl-pick { order: 7; grid-column: 1 / -1; min-height: 40px !important; font-size: 13px !important; }
+  body.page-ssq .btn-copy-all { order: 7; min-height: 40px !important; font-size: 13px !important; }
+  body.page-ssq .btn-dl-pick { order: 8; min-height: 40px !important; font-size: 13px !important; }
 
   /* ---------- 结果列表 ---------- */
   body.page-ssq .pick-result { margin-top: 4px; }
   body.page-ssq .pick-row { padding: 8px 9px; gap: 5px; border-radius: 8px; }
   body.page-ssq .pick-row .idx { font-size: 11px; min-width: 16px; }
+  body.page-ssq .bet-text { font-size: 14px; }
+  body.page-ssq .pick-row .ratio,
+  body.page-ssq .pick-row .hit { font-size: 11px; }
   body.page-ssq .mini-ball { width: 26px; height: 26px; font-size: 11px; }
+  /* 手机上号码一行、区比命中一行，复制删除靠右竖排一行 */
+  body.page-ssq .pick-row {
+    grid-template-columns: 18px 1fr auto;
+    grid-template-areas:
+      "idx bet ops"
+      "idx meta ops";
+    align-items: center;
+    gap: 3px 8px;
+  }
+  body.page-ssq .pick-row .idx { grid-area: idx; align-self: start; padding-top: 3px; }
+  body.page-ssq .pick-row .bet-text { grid-area: bet; }
+  body.page-ssq .pick-row .meta { grid-area: meta; gap: 8px; }
+  body.page-ssq .pick-row .ops { grid-area: ops; margin-left: 0; }
+  /* 验算面板：摘要分两行，收起提示在手机上没必要 */
+  body.page-ssq .verify-box > summary { gap: 4px; padding: 10px 11px; }
+  body.page-ssq .verify-box .v-inline { flex: 1 1 100%; font-size: 12.5px; }
+  body.page-ssq .verify-box .v-hint { display: none; }
+  body.page-ssq .v-stats { grid-template-columns: repeat(3, 1fr); gap: 2px 8px; }
+  body.page-ssq .v-body { padding: 9px 11px 11px; }
+  body.page-ssq .v-row { gap: 4px 8px; }
+  body.page-ssq .v-hits { padding-left: 18px; }
   body.page-ssq .pick-row .ops { margin-left: auto; }
   body.page-ssq .pick-row .ops .btn-sm { min-height: 34px; padding: 5px 14px; font-size: 12px; }
   body.page-ssq .pick-summary { font-size: 12px; padding: 10px; line-height: 1.8; }

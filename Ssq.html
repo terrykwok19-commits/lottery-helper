@@ -599,29 +599,29 @@ body {
   padding: 24px 0;
 }
 .pick-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 22px auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px 12px;
   padding: 9px 10px;
   border-radius: 10px;
   background: var(--bg-dark);
   margin-bottom: 8px;
   font-size: 13px;
 }
+.pick-row .meta { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
 .pick-row .idx { color: #aaa; font-size: 12px; min-width: 22px; }
-.mini-ball {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 27px; height: 27px;
-  border-radius: 50%;
-  font-size: 12px;
+/* 号码直接用纯文本 + 逗号，方便看和复制 */
+.bet-text {
+  font-family: Consolas, "SF Mono", Menlo, monospace;
+  font-size: 15px;
   font-weight: 700;
-  color: #fff;
-  background: #e53935;
+  letter-spacing: .4px;
+  color: #333;
+  white-space: nowrap;
 }
-.mini-ball.blue { background: #1e88e5; margin-left: 4px; }
+.bet-text .sep { color: #1e88e5; margin: 0 3px; font-weight: 600; }
+.bet-text .blue { color: #1565c0; }
 .pick-row .ratio { color: var(--fg-secondary); font-size: 12px; }
 .pick-row .hit { color: var(--gold); font-weight: 700; font-size: 12px; }
 .pick-row .ops { margin-left: auto; display: flex; gap: 6px; }
@@ -636,6 +636,130 @@ body {
   color: #5a5a7a;
 }
 .pick-summary strong { color: #c62828; }
+
+/* ---------- 历史验算：可折叠 ---------- */
+.verify-box {
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid #cfe0f5;
+  background: #f7fbff;
+  overflow: hidden;
+}
+.verify-box > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 11px 12px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  color: #37474f;
+  background: linear-gradient(135deg, #eaf4ff, #f4faff);
+  user-select: none;
+}
+.verify-box > summary::-webkit-details-marker { display: none; }
+.verify-box > summary::before {
+  content: '▸';
+  color: #1e88e5;
+  font-size: 12px;
+  transition: transform .18s;
+}
+.verify-box[open] > summary::before { transform: rotate(90deg); }
+.verify-box .v-title { font-weight: 700; color: #1565c0; }
+.verify-box .v-inline { font-family: Consolas, monospace; font-size: 13px; color: #546e7a; }
+.verify-box .v-inline b { font-size: 14px; }
+.verify-box .v-inline .pos { color: #2e7d32; }
+.verify-box .v-inline .neg { color: #c62828; }
+.verify-box .v-hint { margin-left: auto; font-size: 11px; color: #90a4ae; }
+.verify-box > summary .v-hint::after { content: '点击展开明细'; }
+.verify-box[open] > summary .v-hint::after { content: '点击收起'; }
+
+.v-body { padding: 10px 12px 12px; }
+.v-stats {
+  display: grid;
+  grid-template-columns: repeat(6, auto);
+  justify-content: start;
+  gap: 4px 18px;
+  font-size: 12px;
+  color: #546e7a;
+  line-height: 1.8;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #d6e4f0;
+}
+.v-stats em { font-style: normal; color: #c62828; font-weight: 700; }
+.v-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 5px 0;
+}
+.v-row + .v-row { border-top: 1px solid #eef4fa; }
+.v-row .v-idx { color: #b0bec5; font-size: 12px; min-width: 16px; }
+.v-row .v-prize { font-size: 12px; color: #90a4ae; }
+.v-row .v-prize.win { color: #c62828; font-weight: 700; }
+.v-hits {
+  flex: 1 1 100%;
+  font-size: 11px;
+  color: #78909c;
+  line-height: 1.7;
+  padding-left: 24px;
+  word-break: break-all;
+}
+.verify-empty { font-size: 12px; color: #90a4ae; padding: 6px 0; }
+
+/* 手动复制面板 */
+.copy-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.copy-panel {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .25);
+}
+.copy-title { font-size: 13px; color: #5a5a7a; margin-bottom: 8px; }
+.copy-panel textarea {
+  width: 100%;
+  height: 120px;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.copy-panel button { margin-top: 10px; width: 100%; }
+
+/* 轻提示 */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(38, 50, 56, .92);
+  color: #fff;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 @media (max-width: 640px) {
   .zone-grid { grid-template-columns: 1fr; }
   .pick-row .ops { margin-left: 0; }
@@ -722,14 +846,16 @@ body {
         <button class="btn btn-primary" onclick="generatePick()">生成号码</button>
         <button class="btn btn-gold" onclick="generatePick(true)">机选一注</button>
         <button class="btn btn-plain btn-clear-pick" onclick="clearPick()">清空</button>
-        <button class="btn btn-blue btn-dl-pick" onclick="downloadPick()">下载TXT</button>
+        <button class="btn btn-plain btn-copy-all" onclick="copyAllBets()">复制全部</button>
         <button class="btn btn-blue btn-verify-pick" onclick="verifyPick()">历史验算</button>
+        <button class="btn btn-blue btn-dl-pick" onclick="downloadPick()">下载TXT</button>
       </div>
 
       <div class="pick-result" id="pickResult">
         <div class="pick-empty">设定区比后点「生成号码」，红球按三区分配，蓝球从 01-16 中抽取（不分区）</div>
       </div>
       <div id="pickSummary"></div>
+      <div id="verifyBox"></div>
     </div>
   </div><!-- /panelPick -->
 </div>
@@ -1438,6 +1564,8 @@ function generatePick(oneBet) {
   if (bets.length === 0) { alert('未能生成不重复的组合，请减少注数或增加号码池'); return; }
   pickState.bets = bets;
   renderPickResults();
+  var vb = document.getElementById('verifyBox');
+  if (vb) vb.innerHTML = '';
   scrollToPickResultOnMobile();
 }
 
@@ -1468,6 +1596,15 @@ function prizeOf(redHits, blueHit) {
   return null;
 }
 
+function betText(bet) {
+  return bet.reds.map(pad).join(',') + ' + ' + pad(bet.blue);
+}
+
+function betTextHtml(bet) {
+  return '<span class="bet-text">' + bet.reds.map(pad).join(',') +
+    '<span class="sep">+</span><span class="blue">' + pad(bet.blue) + '</span></span>';
+}
+
 function renderPickResults() {
   var box = document.getElementById('pickResult');
   var sumBox = document.getElementById('pickSummary');
@@ -1491,10 +1628,11 @@ function renderPickResults() {
     html +=
       '<div class="pick-row">' +
         '<span class="idx">' + (i + 1) + '</span>' +
-        bet.reds.map(function (n) { return '<span class="mini-ball">' + pad(n) + '</span>'; }).join('') +
-        '<span class="mini-ball blue">' + pad(bet.blue) + '</span>' +
-        '<span class="ratio">区比 ' + pickZoneRatio(bet.reds) + '</span>' +
-        hitText +
+        betTextHtml(bet) +
+        '<span class="meta">' +
+          '<span class="ratio">区比 ' + pickZoneRatio(bet.reds) + '</span>' +
+          hitText +
+        '</span>' +
         '<span class="ops">' +
           '<button class="btn btn-plain btn-sm" onclick="copyOneBet(' + i + ')">复制</button>' +
           '<button class="btn btn-plain btn-sm" onclick="removeOneBet(' + i + ')">删除</button>' +
@@ -1507,14 +1645,20 @@ function renderPickResults() {
     var count = pickState.bets.length;
     sumBox.className = 'pick-summary';
     sumBox.innerHTML = '本期共 <strong>' + count + '</strong> 注，投注金额 <strong>' + (count * 2) + '</strong> 元' +
-      (latest ? '；最新一期 <strong>' + latest.period + '</strong> 开奖号码：红 ' + latest.reds.map(pad).join(' ') + ' + 蓝 ' + latest.blues.map(pad).join(' ') : '');
+      (latest ? '；最新一期 <strong>' + latest.period + '</strong> 开奖号码：红 ' + latest.reds.map(pad).join(', ') + ' + 蓝 ' + latest.blues.map(pad).join(', ') : '');
   }
 }
 
 function copyOneBet(i) {
   var bet = pickState.bets[i];
   if (!bet) return;
-  copyText(bet.reds.map(pad).join(' ') + ' + ' + pad(bet.blue), '第 ' + (i + 1) + ' 注已复制');
+  copyText(betText(bet), '第 ' + (i + 1) + ' 注已复制');
+}
+
+function copyAllBets() {
+  if (!pickState.bets.length) { toast('还没有生成号码'); return; }
+  var text = pickState.bets.map(betText).join('\n');
+  copyText(text, '已复制 ' + pickState.bets.length + ' 注号码');
 }
 
 function removeOneBet(i) {
@@ -1522,12 +1666,68 @@ function removeOneBet(i) {
   renderPickResults();
 }
 
-function copyText(text, msg) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function () { alert(msg); }, function () { prompt('复制失败，手动复制：', text); });
-  } else {
-    prompt('手动复制：', text);
+var toastTimer = null;
+function toast(msg) {
+  var el = document.getElementById('toastTip');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toastTip';
+    el.className = 'toast';
+    document.body.appendChild(el);
   }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.classList.remove('show'); }, 1700);
+}
+
+function copyText(text, msg) {
+  var settled = false;
+  function ok() { if (settled) return; settled = true; toast(msg); }
+  function fail() { if (settled) return; settled = true; fallbackCopy(); }
+
+  function fallbackCopy() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    var done = false;
+    try { done = document.execCommand('copy'); } catch (e) { done = false; }
+    document.body.removeChild(ta);
+    done ? toast(msg) : showCopyManual(text);
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok, fail);
+    // Safari / 无用户手势时 Promise 可能一直挂着，兜底降级
+    setTimeout(function () { if (!settled) fail(); }, 800);
+  } else {
+    fallbackCopy();
+  }
+}
+
+function showCopyManual(text) {
+  var mask = document.createElement('div');
+  mask.className = 'copy-mask';
+  mask.innerHTML =
+    '<div class="copy-panel">' +
+      '<div class="copy-title">长按号码全选复制</div>' +
+      '<textarea readonly></textarea>' +
+      '<button class="btn btn-primary btn-sm" type="button">关闭</button>' +
+    '</div>';
+  var ta = mask.querySelector('textarea');
+  ta.value = text;
+  document.body.appendChild(mask);
+  ta.focus();
+  ta.select();
+  mask.querySelector('button').onclick = function () {
+    document.body.removeChild(mask);
+  };
+  mask.addEventListener('click', function (e) {
+    if (e.target === mask) document.body.removeChild(mask);
+  });
 }
 
 function clearPick() {
@@ -1539,14 +1739,14 @@ function clearPick() {
   renderPickGrid();
   renderPickResults();
   document.getElementById('pickSummary').innerHTML = '';
+  document.getElementById('verifyBox').innerHTML = '';
 }
 
 function downloadPick() {
   if (!pickState.bets.length) { alert('还没有生成号码'); return; }
   var lines = ['双色球选号 ' + new Date().toLocaleString()];
-  lines.push('注数\t红球\t蓝球\t区比');
   pickState.bets.forEach(function (b, i) {
-    lines.push((i + 1) + '\t' + b.reds.map(pad).join(' ') + '\t' + pad(b.blue) + '\t' + pickZoneRatio(b.reds));
+    lines.push((i + 1) + '. ' + betText(b));
   });
   var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
   var a = document.createElement('a');
@@ -1578,7 +1778,7 @@ function verifyPick() {
       if (p) {
         prize += p.money;
         levelCount[p.level]++;
-        hits.push(d.period + '(' + rh + '+' + (bh ? 1 : 0) + ' ' + p.name + ')');
+        hits.push(d.period + ' ' + rh + '+' + (bh ? 1 : 0) + ' ' + p.name);
       }
     }
     if (prize > 0) winBets++;
@@ -1586,24 +1786,45 @@ function verifyPick() {
     detail.push({ bet: bet, prize: prize, hits: hits });
   });
 
-  var html = '<div class="pick-summary">' +
-    '近 <strong>' + periods + '</strong> 期验算：投入 <strong>' + cost + '</strong> 元，中奖 <strong>' + totalPrize.toFixed(0) + '</strong> 元，' +
-    '盈亏 <strong style="color:' + (totalPrize - cost >= 0 ? '#2e7d32' : '#c62828') + '">' + (totalPrize - cost).toFixed(0) + '</strong> 元<br>' +
-    '中奖注数 <strong>' + winBets + '/' + pickState.bets.length + '</strong>　' +
-    ['一', '二', '三', '四', '五', '六'].map(function (name, i) {
-      return name + '等奖 ' + levelCount[i + 1];
-    }).join('　') +
-    '</div>' +
-    detail.map(function (d, i) {
-      return '<div class="pick-row">' +
-        '<span class="idx">' + (i + 1) + '</span>' +
-        d.bet.reds.map(function (n) { return '<span class="mini-ball">' + pad(n) + '</span>'; }).join('') +
-        '<span class="mini-ball blue">' + pad(d.bet.blue) + '</span>' +
-        '<span class="ratio">中奖 ' + d.prize.toFixed(0) + ' 元</span>' +
-        '<span class="ratio">' + (d.hits.length ? d.hits.join('，') : '未中奖') + '</span>' +
-      '</div>';
-    }).join('');
-  document.getElementById('pickSummary').innerHTML = html;
+  var diff = totalPrize - cost;
+  var levelNames = ['一', '二', '三', '四', '五', '六'];
+
+  var html =
+    '<details class="verify-box" open>' +
+      '<summary>' +
+        '<span class="v-title">近 ' + periods + ' 期验算</span>' +
+        '<span class="v-inline">投入 ' + cost + ' · 中奖 ' + totalPrize.toFixed(0) +
+          ' · 盈亏 <b class="' + (diff >= 0 ? 'pos' : 'neg') + '">' + (diff >= 0 ? '+' : '') + diff.toFixed(0) + '</b> 元' +
+          ' · 中奖 <b>' + winBets + '/' + pickState.bets.length + '</b> 注</span>' +
+        '<span class="v-hint"></span>' +
+      '</summary>' +
+      '<div class="v-body">' +
+        '<div class="v-stats">' +
+          [1, 2, 3, 4, 5, 6].map(function (n) {
+            return '<span class="v-lv">' + levelNames[n - 1] + '等奖 <em>' + levelCount[n] + '</em></span>';
+          }).join('') +
+        '</div>' +
+        detail.map(function (d, i) {
+          return '<div class="v-row">' +
+            '<span class="v-idx">' + (i + 1) + '</span>' +
+            betTextHtml(d.bet) +
+            '<span class="v-prize' + (d.prize > 0 ? ' win' : '') + '">' +
+              (d.prize > 0 ? '中 ' + d.prize.toFixed(0) + ' 元' : '未中奖') +
+            '</span>' +
+            (d.hits.length ? '<div class="v-hits">' + d.hits.join('，') + '</div>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</details>';
+
+  document.getElementById('verifyBox').innerHTML = html;
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    setTimeout(function () {
+      var el = document.querySelector('.verify-box');
+      if (!el) return;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 60, behavior: 'smooth' });
+    }, 60);
+  }
 }
 
 function updatePickStatus() {
