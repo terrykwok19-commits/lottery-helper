@@ -1419,6 +1419,234 @@ body {
   .pred-grid { grid-template-columns: repeat(8, 1fr); }
   .zone-grid.zone-grid-10 { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   选号结果：纯文本行 + 一键复制 + 可折叠验算（与双色球一致）
+   ============================================================ */
+.pick-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.pick-tools .period-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg-secondary);
+}
+.pick-tools .period-wrap input {
+  width: 108px;
+  padding: 7px 8px;
+  border: 1px solid var(--bg-light);
+  border-radius: 6px;
+  background: var(--bg-mid);
+  color: var(--fg-primary);
+  font-size: 13px;
+}
+
+/* 一行一注：序号 / 号码 / 操作，号码多时按逗号自动折行 */
+.pick-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "idx bet ops"
+    "idx meta ops";
+  align-items: center;
+  gap: 3px 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--bg-dark);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.pick-row .idx {
+  grid-area: idx;
+  align-self: start;
+  padding-top: 2px;
+  color: #90a4ae;
+  font-size: 12px;
+  font-weight: 700;
+}
+.bet-text {
+  font-family: Consolas, "SF Mono", Menlo, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  color: var(--fg-primary);
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.pick-row .bet-text { grid-area: bet; }
+.bet-text .sep { color: #1e88e5; margin: 0 3px; font-weight: 600; }
+.bet-text .blue { color: #1565c0; }
+.pick-row .meta {
+  grid-area: meta;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--fg-secondary);
+  font-size: 12px;
+}
+.pick-row .hit { color: var(--gold); font-weight: 700; }
+.pick-row .ops { grid-area: ops; display: flex; gap: 6px; }
+.pick-op {
+  border: none;
+  background: var(--card-bg);
+  color: #37474f;
+  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  white-space: nowrap;
+  font-family: inherit;
+}
+.pick-op:hover { background: #e8f0fe; color: #1565c0; }
+
+/* 选号单 / 保存区：号码同样用纯文本 */
+.sim-slip-bet-nums { display: block; flex: 1 1 120px; min-width: 0; }
+.sim-slip-bet-nums .bet-text { font-size: 14px; font-weight: 700; }
+.dan-tag, .tuo-tag {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 0 4px;
+  margin-right: 4px;
+}
+.dan-tag { color: #8d6e00; background: #fff3cd; }
+.tuo-tag { color: #1565c0; background: #e8f0fe; }
+
+/* ---------- 历史验算：可折叠 ---------- */
+.verify-box {
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid #cfe0f5;
+  background: #f7fbff;
+  overflow: hidden;
+}
+.verify-box > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 11px 12px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  color: #37474f;
+  background: linear-gradient(135deg, #eaf4ff, #f4faff);
+  user-select: none;
+}
+.verify-box > summary::-webkit-details-marker { display: none; }
+.verify-box > summary::before {
+  content: '▸';
+  color: #1e88e5;
+  font-size: 12px;
+  transition: transform .18s;
+}
+.verify-box[open] > summary::before { transform: rotate(90deg); }
+.verify-box .v-title { font-weight: 700; color: #1565c0; }
+.verify-box .v-inline { font-family: Consolas, monospace; font-size: 13px; color: #546e7a; }
+.verify-box .v-inline b { font-size: 14px; }
+.verify-box .v-inline .pos { color: #2e7d32; }
+.verify-box .v-inline .neg { color: #c62828; }
+.verify-box .v-hint { margin-left: auto; font-size: 11px; color: #90a4ae; }
+.verify-box > summary .v-hint::after { content: '点击展开明细'; }
+.verify-box[open] > summary .v-hint::after { content: '点击收起'; }
+
+.v-body { padding: 10px 12px 12px; }
+.v-draw {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  color: #546e7a;
+  line-height: 1.7;
+  margin-bottom: 6px;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.v-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 12px;
+  color: #546e7a;
+  line-height: 1.8;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #d6e4f0;
+}
+.v-stats em { font-style: normal; color: #c62828; font-weight: 700; }
+.v-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 2px 8px;
+  padding: 6px 0;
+}
+.v-row + .v-row { border-top: 1px solid #eef4fa; }
+.v-row .v-idx { color: #b0bec5; font-size: 12px; padding-top: 3px; }
+.v-row .v-prize { font-size: 12px; color: #90a4ae; text-align: right; padding-top: 3px; }
+.v-row .v-prize.win { color: #c62828; font-weight: 700; }
+.v-hits {
+  grid-column: 2 / -1;
+  font-size: 11px;
+  color: #78909c;
+  line-height: 1.7;
+  word-break: break-word;
+}
+.verify-empty { font-size: 12px; color: #90a4ae; padding: 6px 0; }
+
+/* 手动复制面板（剪贴板被拦时兜底） */
+.copy-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.copy-panel {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.25);
+}
+.copy-title { font-size: 13px; color: #5a5a7a; margin-bottom: 8px; }
+.copy-panel textarea {
+  width: 100%;
+  height: 130px;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.copy-panel button {
+  margin-top: 10px;
+  width: 100%;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23e94560'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="mobile.css">
@@ -1484,14 +1712,14 @@ body {
     </div>
 
     <div id="pickResultArea" class="result-area" style="display:none;">
-      <div style="margin-bottom:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center;">
-        <button class="btn-icon" onclick="copyCurrentPick()">📋 复制号码</button>
-        <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-secondary);">
+      <div class="pick-tools">
+        <button class="btn-icon" onclick="copyAllGroups()">📋 复制全部</button>
+        <div class="period-wrap">
           <span>期号</span>
-          <input type="text" id="pickVerifyPeriodNum" placeholder="如2026150" style="width:100px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg-secondary);color:var(--fg-primary);font-size:13px;">
+          <input type="text" id="pickVerifyPeriodNum" placeholder="如2026150">
         </div>
         <button class="btn-generate" onclick="verifyPickResults()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#ff6b6b,#ee5a6f);">🎯 验证中奖</button>
-        <button class="btn-generate" onclick="importPickToSim()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">导入到模拟选号</button>
+        <button class="btn-generate" onclick="importPickToSim()" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg,#2ed573,#1e90ff);">导入选号单</button>
         <button class="btn-clear" onclick="clearPickResults()">清除结果</button>
       </div>
       <h3 style="display:flex;align-items:center;justify-content:space-between;">选号结果 <span style="font-size:12px;color:var(--fg-secondary);font-weight:normal;" id="pickResultCount"></span></h3>
@@ -2170,6 +2398,54 @@ function renderResult(sorted) {
   }
   pickedGroups.push(sorted);
   renderPickResults();
+  clearPickVerify();   // 组数变了，旧验算结果作废
+}
+
+// 号码数组 -> 纯文本：逗号分隔（和双色球一致，看着清楚、复制即用）
+function klbBetText(nums) {
+  return nums.map(n => String(n).padStart(2, '0')).join(',');
+}
+// 金额：整数不带小数，有小数保留两位（不带「元」字，单位在外层拼）
+function moneyText(v) {
+  return v.toFixed(v % 1 === 0 ? 0 : 2);
+}
+
+// 统一的折叠验算面板：标题行直接给投入/中奖/盈亏/中奖注数，明细收在下面
+function buildVerifyBox(title, cost, prize, profit, winLabel, drawText, bodyHtml) {
+  return '<details class="verify-box" open>' +
+    '<summary>' +
+      '<span class="v-title">' + title + '</span>' +
+      '<span class="v-inline">投入 ' + moneyText(cost) + ' · 中奖 ' + moneyText(prize) +
+        ' · 盈亏 <b class="' + (profit >= 0 ? 'pos' : 'neg') + '">' +
+        (profit >= 0 ? '+' : '') + moneyText(profit) + '</b> 元 · ' + winLabel + '</span>' +
+      '<span class="v-hint"></span>' +
+    '</summary>' +
+    '<div class="v-body">' +
+      (drawText ? '<div class="v-draw">' + drawText + '</div>' : '') +
+      bodyHtml +
+    '</div>' +
+  '</details>';
+}
+// HTML 版：每个逗号后面留一个断行点，复式十几码在手机上也不会撑破一行
+function klbBetTextHtml(nums) {
+  return '<span class="bet-text">' + nums.map(n => String(n).padStart(2, '0')).join(',<wbr>') + '</span>';
+}
+// 同上，但只给断行点、不带 .bet-text 样式（用在开奖号码这类小字里）
+function klbNumHtml(nums) {
+  return nums.map(n => String(n).padStart(2, '0')).join(',<wbr>');
+}
+// 号码个数对应的玩法名：≤10 单选，>10 视为复式（选十复式）
+function klbRule(nums) {
+  if (nums.length > 10) return { name: '复式' + nums.length };
+  return PRIZE_RULES[nums.length] || PRIZE_RULES[10];
+}
+
+// 选号单 / 保存区：有胆码就 胆…| 拖…，否则直接全号码
+function simBetTextHtml(bet) {
+  if (!bet.dan || bet.dan.length === 0) return klbBetTextHtml(bet.tuo || []);
+  return '<span class="bet-text"><span class="dan-tag">胆</span>' + klbBetText(bet.dan) +
+    '<span class="sep">|</span><span class="tuo-tag">拖</span>' +
+    (bet.tuo || []).map(n => String(n).padStart(2, '0')).join(',<wbr>') + '</span>';
 }
 
 function renderPickResults() {
@@ -2183,14 +2459,54 @@ function renderPickResults() {
   area.style.display = '';
   const totalNums = pickedGroups.reduce((s, g) => s + g.length, 0);
   countEl.textContent = `(${pickedGroups.length}组 ${totalNums}个号码)`;
-  groupsEl.innerHTML = pickedGroups.map((group, idx) => `
-    <div style="margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;">
-      <div style="font-size:11px;color:var(--fg-secondary);margin-bottom:4px;">第${idx + 1}组 (${group.length}个)</div>
-      <div class="result-balls">${group.map(n =>
-        `<div class="result-ball">${String(n).padStart(2, '0')}</div>`
-      ).join('')}</div>
-    </div>
-  `).join('');
+
+  const latest = (typeof drawData !== 'undefined' && drawData.length) ? drawData[0] : null;
+  const latestSet = latest ? new Set(latest.numbers) : null;
+
+  groupsEl.innerHTML = pickedGroups.map((group, idx) => {
+    const rule = klbRule(group);
+    let metaHtml = `<span>${rule.name} · ${group.length}个号</span>`;
+    if (latestSet) {
+      const hit = group.filter(n => latestSet.has(n)).length;
+      const prize = getPrize(Math.min(group.length, 15), hit);
+      metaHtml += `<span class="hit">最新期命中 ${hit} 个${prize > 0 ? ' · ' + formatPrize(prize) : ''}</span>`;
+    }
+    return `
+      <div class="pick-row">
+        <span class="idx">${idx + 1}</span>
+        ${klbBetTextHtml(group)}
+        <span class="meta">${metaHtml}</span>
+        <span class="ops">
+          <button class="pick-op" type="button" onclick="copyOneGroup(${idx})">复制</button>
+          <button class="pick-op" type="button" onclick="removeOneGroup(${idx})">删除</button>
+        </span>
+      </div>
+    `;
+  }).join('');
+}
+
+// 注数一变，旧验算结果就失效了，直接清掉免得看错
+function clearPickVerify() {
+  const el = document.getElementById('pickVerifyResult');
+  if (el) el.innerHTML = '';
+}
+
+function copyOneGroup(i) {
+  const group = pickedGroups[i];
+  if (!group) return;
+  copyText(klbBetText(group), `第 ${i + 1} 组已复制`);
+}
+
+function copyAllGroups() {
+  if (pickedGroups.length === 0) { showToast('还没有选号结果'); return; }
+  copyText(pickedGroups.map(klbBetText).join('\n'), `已复制 ${pickedGroups.length} 组号码`);
+}
+
+function removeOneGroup(i) {
+  pickedGroups.splice(i, 1);
+  renderPickResults();
+  clearPickVerify();
+  if (pickedGroups.length === 0) showToast('选号结果已清空');
 }
 
 function clearPickResults() {
@@ -2227,28 +2543,20 @@ function verifyPickResults() {
   let totalPrize = 0;
   let totalWinGroups = 0;
 
-  const html = pickedGroups.map((group, idx) => {
+  const rows = pickedGroups.map((group, idx) => {
     const type = Math.min(group.length, 15);
-    const rule = PRIZE_RULES[type] || PRIZE_RULES[10];
     const hits = group.filter(n => drawSet.has(n));
     const hitCount = hits.length;
     const prize = getPrize(type, hitCount);
     const isWin = checkWin(type, hitCount);
     if (isWin) { totalPrize += prize; totalWinGroups += 1; }
 
-    const balls = group.map(n => {
-      const isHit = drawSet.has(n);
-      return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
-    }).join('');
-
     return `
-      <div class="saved-verify-item">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:13px;font-weight:600;">第${idx + 1}组 ${rule.name}</span>
-          <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:2px;">${balls}</div>
-        ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+      <div class="v-row">
+        <span class="v-idx">${idx + 1}</span>
+        ${klbBetTextHtml(group)}
+        <span class="v-prize ${isWin ? 'win' : ''}">命中 ${hitCount} 个 · ${isWin ? '中 ' + formatPrize(prize) : (hits.length ? '未中奖' : '未命中')}</span>
+        ${hits.length > 0 ? `<div class="v-hits">中奖号码 ${klbBetText(hits)}</div>` : ''}
       </div>
     `;
   }).join('');
@@ -2256,40 +2564,92 @@ function verifyPickResults() {
   const totalGroups = pickedGroups.length;
   const totalCost = totalGroups * 2;
   const profit = totalPrize - totalCost;
+  const money = moneyText;
 
-  const summary = `
-    <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
-      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${draw.period}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">开奖号码</span><div style="font-size:14px;font-weight:700;color:var(--accent);">${draw.numbers.map(n => String(n).padStart(2,'0')).join(' ')}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">购买组数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalGroups} 组</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏金额</span><div style="font-size:16px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
-    </div>
-  `;
+  const html =
+    '<details class="verify-box" open>' +
+      '<summary>' +
+        '<span class="v-title">' + draw.period + ' 期验算</span>' +
+        '<span class="v-inline">投入 ' + totalCost + ' · 中奖 ' + money(totalPrize) +
+          ' · 盈亏 <b class="' + (profit >= 0 ? 'pos' : 'neg') + '">' + (profit >= 0 ? '+' : '') + money(profit) + '</b> 元' +
+          ' · 中奖 <b>' + totalWinGroups + '/' + totalGroups + '</b> 组</span>' +
+        '<span class="v-hint"></span>' +
+      '</summary>' +
+      '<div class="v-body">' +
+        '<div class="v-draw">本期开奖：' + klbNumHtml(draw.numbers) + '</div>' +
+        '<div class="v-stats">' +
+          '<span>共 ' + totalGroups + ' 注 · 单注 2 元</span>' +
+          '<span>中奖 <em>' + totalWinGroups + '</em> 组</span>' +
+        '</div>' +
+        rows +
+      '</div>' +
+    '</details>';
 
-  document.getElementById('pickVerifyResult').innerHTML = summary + html;
+  document.getElementById('pickVerifyResult').innerHTML = html;
   showToast(`验算完成：${draw.period}`);
+  scrollVerifyIntoView();
 }
 
-function copyCurrentPick() {
-  if (pickedGroups.length === 0) {
-    showToast('当前没有选号');
-    return;
-  }
-  const text = pickedGroups.map(group =>
-    group.map(n => String(n).padStart(2, '0')).join(' ')
-  ).join('\n');
-  navigator.clipboard.writeText(text).then(() => showToast('已复制号码')).catch(() => {
+// 手机端：验算完把面板滚到眼前
+function scrollVerifyIntoView() {
+  if (!window.matchMedia('(max-width: 768px)').matches) return;
+  setTimeout(() => {
+    const el = document.querySelector('#pickVerifyResult .verify-box') ||
+               document.querySelector('#simSlipResult .verify-box') ||
+               document.querySelector('#simSavedResult .verify-box');
+    if (!el) return;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 60, behavior: 'smooth' });
+  }, 60);
+}
+
+// ---------- 复制：clipboard API → execCommand → 手动面板 ----------
+function copyText(text, msg) {
+  let settled = false;
+  const ok = () => { if (settled) return; settled = true; showToast(msg); };
+  const fail = () => { if (settled) return; settled = true; fallbackCopy(); };
+
+  function fallbackCopy() {
     const ta = document.createElement('textarea');
     ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
     document.body.appendChild(ta);
     ta.select();
-    document.execCommand('copy');
+    let done = false;
+    try { done = document.execCommand('copy'); } catch (e) { done = false; }
     document.body.removeChild(ta);
-    showToast('已复制号码');
-  });
+    done ? showToast(msg) : showCopyManual(text);
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok, fail);
+    // Safari / 无用户手势时 Promise 可能一直挂着，兜底降级
+    setTimeout(() => { if (!settled) fail(); }, 800);
+  } else {
+    fallbackCopy();
+  }
 }
+
+function showCopyManual(text) {
+  const mask = document.createElement('div');
+  mask.className = 'copy-mask';
+  mask.innerHTML =
+    '<div class="copy-panel">' +
+      '<div class="copy-title">长按号码全选复制</div>' +
+      '<textarea readonly></textarea>' +
+      '<button type="button">关闭</button>' +
+    '</div>';
+  const ta = mask.querySelector('textarea');
+  ta.value = text;
+  document.body.appendChild(mask);
+  ta.focus();
+  ta.select();
+  mask.querySelector('button').onclick = () => document.body.removeChild(mask);
+  mask.addEventListener('click', e => { if (e.target === mask) document.body.removeChild(mask); });
+}
+
+// 兼容旧调用
+function copyCurrentPick() { copyAllGroups(); }
 
 
 function shuffle(arr) {
@@ -4394,22 +4754,8 @@ function simCopySlip() {
     showToast('选号单为空，请先添加选号');
     return;
   }
-  const lines = simSlipBets.map(bet => {
-    const allNums = [...bet.dan, ...bet.tuo].sort((a, b) => a - b);
-    return allNums.map(n => String(n).padStart(2, '0')).join(' ');
-  });
-  const text = lines.join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    showToast(`已复制 ${simSlipBets.length} 注号码`);
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast(`已复制 ${simSlipBets.length} 注号码`);
-  });
+  const lines = simSlipBets.map(bet => klbBetText([...bet.dan, ...bet.tuo].sort((a, b) => a - b)));
+  copyText(lines.join('\n'), `已复制 ${simSlipBets.length} 注号码`);
 }
 
 function simVerifySlip() {
@@ -4437,7 +4783,7 @@ function simVerifySlip() {
   let totalPrize = 0;
   let totalWinBets = 0;
 
-  const html = simSlipBets.map((bet, idx) => {
+  const rows = simSlipBets.map((bet, idx) => {
     const allNums = [...bet.dan, ...bet.tuo].sort((a, b) => a - b);
     const hits = allNums.filter(n => drawSet.has(n));
     const hitCount = hits.length;
@@ -4445,19 +4791,12 @@ function simVerifySlip() {
     const isWin = checkWin(bet.type, hitCount);
     if (isWin) { totalPrize += prize; totalWinBets += bet.bets; }
 
-    const hitBalls = allNums.map(n => {
-      const isHit = drawSet.has(n);
-      return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
-    }).join('');
-
     return `
-      <div class="saved-verify-item">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:13px;font-weight:600;">第${idx + 1}注 ${bet.typeName}</span>
-          <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
-        ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+      <div class="v-row">
+        <span class="v-idx">${idx + 1}</span>
+        ${klbBetTextHtml(allNums)}
+        <span class="v-prize ${isWin ? 'win' : ''}">${bet.typeName} · 命中 ${hitCount} 个 · ${isWin ? '中 ' + moneyText(prize) + ' 元' : '未中奖'}</span>
+        ${hits.length > 0 ? `<div class="v-hits">中奖号码 ${klbBetText(hits)}</div>` : ''}
       </div>
     `;
   }).join('');
@@ -4466,19 +4805,20 @@ function simVerifySlip() {
   const totalCost = totalBets * SIM_PRICE;
   const profit = totalPrize - totalCost;
 
-  const summary = `
-    <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
-      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期号</span><div style="font-size:16px;font-weight:700;">${draw.period}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">开奖号码</span><div style="font-size:14px;font-weight:700;color:var(--accent);">${draw.numbers.map(n => String(n).padStart(2,'0')).join(' ')}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">购买注数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalBets} 注</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏金额</span><div style="font-size:16px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
-    </div>
-  `;
+  const statsHtml =
+    '<div class="v-stats">' +
+      '<span>共 ' + totalBets + ' 注 · 单注 2 元</span>' +
+      '<span>' + simSlipBets.length + ' 行</span>' +
+    '</div>';
 
-  document.getElementById('simSlipResult').innerHTML = summary + html;
+  document.getElementById('simSlipResult').innerHTML = buildVerifyBox(
+    draw.period + ' 期验算', totalCost, totalPrize, profit,
+    '中奖 <b>' + totalWinBets + '/' + totalBets + '</b> 注',
+    '本期开奖：' + klbNumHtml(draw.numbers),
+    statsHtml + rows
+  );
   showToast(`验算完成：${draw.period}`);
+  scrollVerifyIntoView();
 }
 
 function simRenderSlip() {
@@ -4502,13 +4842,6 @@ function simRenderSlip() {
     totalBets += bet.bets;
     totalCost += bet.cost;
 
-    const danBalls = bet.dan.map(n =>
-      `<span class="s-ball dan-ball">${String(n).padStart(2,'0')}</span>`
-    ).join('');
-    const tuoBalls = bet.tuo.map(n =>
-      `<span class="s-ball">${String(n).padStart(2,'0')}</span>`
-    ).join('');
-
     return `
       <div class="sim-slip-bet">
         <div class="sim-slip-bet-info">
@@ -4516,9 +4849,7 @@ function simRenderSlip() {
           ${bet.bets}注 ${bet.cost}元
           ${bet.dan.length > 0 ? '<br><span style="color:var(--gold);">胆' + bet.dan.length + '拖' + bet.tuo.length + '</span>' : ''}
         </div>
-        <div class="sim-slip-bet-nums">
-          ${danBalls}${tuoBalls}
-        </div>
+        <div class="sim-slip-bet-nums">${simBetTextHtml(bet)}</div>
         <button class="sim-slip-bet-del" onclick="simRemoveBet('${bet.id}')">×</button>
       </div>
     `;
@@ -4575,13 +4906,6 @@ function simRenderSaved() {
     totalBets += bet.bets;
     totalCost += bet.cost;
 
-    const danBalls = bet.dan.map(n =>
-      `<span class="s-ball dan-ball">${String(n).padStart(2,'0')}</span>`
-    ).join('');
-    const tuoBalls = bet.tuo.map(n =>
-      `<span class="s-ball">${String(n).padStart(2,'0')}</span>`
-    ).join('');
-
     return `
       <div class="sim-slip-bet">
         <div class="sim-slip-bet-info">
@@ -4589,9 +4913,7 @@ function simRenderSaved() {
           ${bet.bets}注 ${bet.cost}元
           ${bet.dan.length > 0 ? '<br><span style="color:var(--gold);">胆' + bet.dan.length + '拖' + bet.tuo.length + '</span>' : ''}
         </div>
-        <div class="sim-slip-bet-nums">
-          ${danBalls}${tuoBalls}
-        </div>
+        <div class="sim-slip-bet-nums">${simBetTextHtml(bet)}</div>
         <button class="sim-slip-bet-del" onclick="simRemoveSaved('${bet.id}')">×</button>
       </div>
     `;
@@ -4646,27 +4968,20 @@ function simVerifySaved() {
       if (isWin) { totalPrize += prize; totalWinBets += bet.bets; }
       totalBetsAcrossAllPeriods += bet.bets;
 
-      const hitBalls = allNums.map(n => {
-        const isHit = drawSet.has(n);
-        return `<span class="verify-num-ball ${isHit ? '' : 'miss'}">${String(n).padStart(2, '0')}</span>`;
-      }).join('');
-
       return `
-        <div class="saved-verify-item">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:13px;font-weight:600;">第${idx + 1}注 ${bet.typeName}</span>
-            <span>命中 <strong style="color:var(--accent);">${hitCount}</strong> 个 ${isWin ? '<span class="verify-hit-tag win">中奖 +' + formatPrize(prize) + '</span>' : '<span class="verify-hit-tag lose">未中奖</span>'}</span>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:2px;">${hitBalls}</div>
-          ${hits.length > 0 ? `<div style="font-size:12px;color:var(--fg-secondary);margin-top:4px;">命中: ${hits.map(n => String(n).padStart(2,'0')).join(', ')}</div>` : ''}
+        <div class="v-row">
+          <span class="v-idx">${idx + 1}</span>
+          ${klbBetTextHtml(allNums)}
+          <span class="v-prize ${isWin ? 'win' : ''}">${bet.typeName} · 命中 ${hitCount} 个 · ${isWin ? '中 ' + moneyText(prize) + ' 元' : '未中奖'}</span>
+          ${hits.length > 0 ? `<div class="v-hits">中奖号码 ${klbBetText(hits)}</div>` : ''}
         </div>
       `;
     }).join('');
 
     return `
       <div class="verify-period-group" style="margin-bottom:12px;">
-        <div class="verify-period-title" style="font-size:13px;font-weight:700;color:var(--fg-primary);margin-bottom:6px;padding:6px 10px;background:var(--bg-secondary);border-radius:6px;">
-          第${pIdx + 1}期 · ${draw.period} · 号码: ${draw.numbers.map(n => String(n).padStart(2,'0')).join(' ')}
+        <div class="verify-period-title" style="font-size:12px;font-weight:700;color:var(--fg-primary);margin-bottom:4px;padding:6px 10px;background:#eef4fa;border-radius:6px;">
+          第${pIdx + 1}期 · ${draw.period} · 开奖 ${klbNumHtml(draw.numbers)}
         </div>
         ${html}
       </div>
@@ -4677,18 +4992,20 @@ function simVerifySaved() {
   const totalCost = totalBetsAcrossAllPeriods * SIM_PRICE;
   const profit = totalPrize - totalCost;
 
-  const summary = `
-    <div style="padding:10px;background:linear-gradient(135deg,#fff8e1,#fffde7);border-radius:8px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-around;">
-      <div><span style="font-size:12px;color:var(--fg-secondary);">验算期数</span><div style="font-size:16px;font-weight:700;">${recentData.length}期 (${recentData[recentData.length - 1].period} ~ ${recentData[0].period})</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">总注数</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalBetsAcrossAllPeriods} 注</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">购买金额</span><div style="font-size:16px;font-weight:700;color:var(--fg-primary);">${totalCost} 元</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">总奖金</span><div style="font-size:16px;font-weight:700;color:var(--gold);">${formatPrize(totalPrize)}</div></div>
-      <div><span style="font-size:12px;color:var(--fg-secondary);">盈亏金额</span><div style="font-size:16px;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${formatPrize(profit)}</div></div>
-    </div>
-  `;
+  const statsHtml =
+    '<div class="v-stats">' +
+      '<span>共 ' + totalBetsAcrossAllPeriods + ' 注 · 单注 2 元</span>' +
+      '<span>' + recentData.length + ' 期 × 每期 ' + totalBets + ' 注</span>' +
+    '</div>';
 
-  document.getElementById('simSavedResult').innerHTML = summary + periodHtml;
+  document.getElementById('simSavedResult').innerHTML = buildVerifyBox(
+    '近 ' + recentData.length + ' 期验算', totalCost, totalPrize, profit,
+    '中奖 <b>' + totalWinBets + '/' + totalBetsAcrossAllPeriods + '</b> 注',
+    recentData[recentData.length - 1].period + ' ~ ' + recentData[0].period,
+    statsHtml + periodHtml
+  );
   showToast(`验算完成：${recentData.length}期`);
+  scrollVerifyIntoView();
 }
 
 // ==================== 区间选号导入到模拟选号 ====================
