@@ -1,6 +1,6 @@
 {
  "game": "ssq",
- "updated": "2026-11-21T21:47:05+08:00",
+ "updated": "2026-11-22T04:28:47+08:00",
  "latest": "2026133",
  "latestDate": "2026-11-19",
  "count": 200,
@@ -3007,5 +3007,6 @@
     13
    ]
   }
- ]
+ ],
+ "note": "cwl: 请求失败 https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice?nam"
 }

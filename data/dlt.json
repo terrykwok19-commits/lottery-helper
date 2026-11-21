@@ -1,6 +1,6 @@
 {
  "game": "dlt",
- "updated": "2026-11-21T21:47:06+08:00",
+ "updated": "2026-11-22T04:28:56+08:00",
  "latest": "26133",
  "latestDate": "2026-11-21",
  "count": 200,
@@ -3007,5 +3007,6 @@
     11
    ]
   }
- ]
+ ],
+ "note": "sporttery: 请求失败 https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.qry?gameNo"
 }
