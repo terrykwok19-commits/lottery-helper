@@ -12,35 +12,48 @@ Dlt.html                大乐透：走势分布
 mobile.css              手机端适配样式（桌面端零改动）
 mobile.js               手机端运行时补丁（实测期号列宽度，给分区统计列定位）
 data.js                 开奖数据统一加载器（本地文件 + 在线源自动合并取最新）
-data/kl8|ssq|dlt.json   开奖数据（最新在后，含 100 期）
+data/kl8|ssq|dlt.json   开奖数据（最新在前，保留 200 期）
 data/kl8|ssq|dlt.js     同数据的 JS 版本，页面用 <script> 加载，file:// 双击也能跑
-tools/fetch_data.py     抓官方接口、刷新 data/ 的脚本
-.github/workflows/update-data.yml  每天定时跑上面的脚本
+tools/fetch_data.py     多源抓取、刷新 data/ 的脚本
+update-data.bat         Windows 一键更新（抓数据 + 提交 + 推送）
+.github/workflows/update-data.yml  每晚定时跑上面的脚本
 ```
 
 ## 数据来源
 
-| 彩种 | 接口 |
-|---|---|
-| 快乐8、双色球 | 中国福彩网 `cwl.gov.cn` 官方开奖查询 |
-| 大乐透 | 中国体彩网 `webapi.sporttery.cn` 官方历史开奖 |
+抓取脚本 `tools/fetch_data.py` 会**同时打多个源**，按期号合并取最新，任一源拿到最新一期即生效：
 
-页面加载顺序：`data/*.js`（同源静态文件）→ 浏览器 localStorage 缓存 → 在线接口。
-同一个期号以静态文件为准，最终按期号取最新的一期，状态栏会显示「已更新至 XXXX 期（日期）」。
+| 优先级 | 源 | 地址 | 覆盖彩种 | 浏览器直连 |
+|---|---|---|---|---|
+| 1（主） | 500 彩票网静态 XML | `kaijiang.500.com/static/info/kaijiang/xml/{kl8\|ssq\|dlt}/list.xml` | 全部 | ✗ 无 CORS |
+| 2 | 中国福彩网官方 | `www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice?name={kl8\|ssq}` | 快乐8 / 双色球 | ✗ 无 CORS |
+| 3 | 中国体彩网官方 | `webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.qry?gameNo=85` | 大乐透 | ✓ 有 `ACAO:*` |
+| 兜底 | huiniao 第三方 | `api.huiniao.top/interface/home/lotteryHistory?type=…` | 全部 | ✓ 但 **2026-11-14 起停更** |
 
-> 早先版本用的是第三方接口 `api.huiniao.top`，该接口 2026-11-14 起停更，所以快乐8 一直显示旧号码。
+实测过的坑（2026-11-21）：
+
+- 福彩官方与 500 彩票网都**不返回 `Access-Control-Allow-Origin`**，且对境外 IP 直接 522/超时，所以公共 CORS 代理（allorigins、codetabs、corsproxy…）全部拿不到数据 —— 静态页面**无法**在浏览器里直连福彩。
+  结论：快乐8 / 双色球的实时性只能靠「预抓 + 静态 JSON」，即本地脚本或 GitHub Actions。
+- 500 的 XML 比福彩官方接口快（开奖后 20~30 分钟就有），而且一次给全历史，所以设为主源；官方接口作交叉校验。
+- 双色球期号两套写法：官方 7 位 `2026133`、500 是 5 位 `26133`，脚本统一归一成 7 位再合并。
+- 官方接口挂 CDN，可能返回上一次缓存的旧数据；脚本每次请求都追加 `_t=时间戳` 穿透缓存。
+
+页面加载顺序：`data/*.js`（同源静态文件，带时间戳防缓存）→ 浏览器 localStorage 缓存 → 在线接口（大乐透可直连体彩官方）。
+同一期号以静态文件为准，最终按期号取最新，状态栏显示「已更新至 XXXX 期（日期）」。
 
 ## 更新数据
 
-本地（推荐，国内网络直连官方接口最稳）：
+本地（国内网络直连最快，任何时候想刷就刷）：
 
 ```bash
-python tools/fetch_data.py
+python tools/fetch_data.py            # 抓取 + 写 data/*.json、data/*.js
+python tools/fetch_data.py --retry 3  # 数据偏旧时自动等待重试
 ```
 
-跑完会重写 `data/*.json` 和 `data/*.js`，刷新页面即可看到最新一期。
+Windows 上也可以直接双击 `update-data.bat`：抓数据 → 提交 → 推送，一次搞定。
 
-云端：GitHub Actions 每天北京时间 22:40 自动跑一次（见 workflow），需要仓库允许 Actions 写权限。
+云端：GitHub Actions 每晚跑 4 次（北京时间 22:10 / 22:45 / 23:20，次日 07:30 兜底），
+脚本发现某彩种数据偏旧会自动等待 60 秒重试，最多 3 轮；需要仓库允许 Actions 写权限。
 
 ## 双色球选号说明
 
